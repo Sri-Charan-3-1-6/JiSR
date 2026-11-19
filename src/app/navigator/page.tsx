@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { RiskBadge, StateBadge, fmtDateTime, fmtDuration, intervalToMs } from '@/components/ui';
 import type { RiskTier } from '@/lib/matching';
 
@@ -22,6 +23,9 @@ interface QueueCase {
 interface Clock { now: string; offset: string }
 
 export default function NavigatorConsole() {
+  const t = useTranslations('navigator');
+  const tc = useTranslations('common');
+  const tm = useTranslations('milestones');
   const [cases, setCases] = useState<QueueCase[]>([]);
   const [clock, setClock] = useState<Clock | null>(null);
   const [tab, setTab] = useState<'all' | 'overdue'>('all');
@@ -33,7 +37,7 @@ export default function NavigatorConsole() {
     try {
       const res = await fetch('/api/navigator/queue');
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error ?? 'Failed to load queue');
+      if (!res.ok) throw new Error(d.error ?? t('loadError'));
       setCases(d.cases);
       setClock(d.clock);
       setError(null);
@@ -42,6 +46,7 @@ export default function NavigatorConsole() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -60,6 +65,7 @@ export default function NavigatorConsole() {
     }
   }
 
+  const milestone = (m: string | null) => (m && tm.has(m) ? tm(m) : m ?? '');
   const shown = tab === 'overdue' ? cases.filter((c) => c.is_overdue) : cases;
   const overdueCount = cases.filter((c) => c.is_overdue).length;
 
@@ -68,17 +74,17 @@ export default function NavigatorConsole() {
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold">Navigator console</h1>
+            <h1 className="text-xl font-bold">{t('title')}</h1>
             <p className="text-sm text-muted">
-              Queue sorted by risk, then overdue time. Simulated clock:{' '}
+              {t('subtitle')}{' '}
               <strong>{clock ? fmtDateTime(clock.now) : '…'}</strong>
               {clock && clock.offset !== '00:00:00' && (
-                <span className="ml-1 text-amber-700">(+{clock.offset} demo offset)</span>
+                <span className="ms-1 text-amber-700">{t('offset', { offset: clock.offset })}</span>
               )}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted">Demo time-travel:</span>
+            <span className="text-xs font-semibold text-muted">{t('timeTravel')}</span>
             {[1, 3, 7].map((d) => (
               <button
                 key={d}
@@ -87,11 +93,11 @@ export default function NavigatorConsole() {
                 className="btn btn-outline px-3 py-2 text-sm"
                 style={{ minHeight: 40 }}
               >
-                +{d} day{d > 1 ? 's' : ''}
+                {d === 1 ? t('plusOneDay') : t('plusDays', { n: d })}
               </button>
             ))}
             <button onClick={load} disabled={traveling} className="btn btn-outline px-3 py-2 text-sm" style={{ minHeight: 40 }}>
-              Refresh
+              {tc('refresh')}
             </button>
           </div>
         </div>
@@ -103,23 +109,23 @@ export default function NavigatorConsole() {
           className={`btn px-4 py-2 text-sm ${tab === 'all' ? 'btn-primary' : 'btn-outline'}`}
           style={{ minHeight: 40 }}
         >
-          All cases ({cases.length})
+          {t('allCases', { n: cases.length })}
         </button>
         <button
           onClick={() => setTab('overdue')}
           className={`btn px-4 py-2 text-sm ${tab === 'overdue' ? 'btn-danger' : 'btn-outline'}`}
           style={{ minHeight: 40 }}
         >
-          Overdue ({overdueCount})
+          {t('overdue', { n: overdueCount })}
         </button>
       </div>
 
       {error && <p className="text-danger" role="alert">{error}</p>}
       {loading ? (
-        <p className="text-muted">Loading queue…</p>
+        <p className="text-muted">{t('loading')}</p>
       ) : shown.length === 0 ? (
         <div className="card p-6 text-sm text-muted">
-          {tab === 'overdue' ? 'No overdue cases — every SLA is currently met.' : 'No cases yet. Cases appear here after a resident screens.'}
+          {tab === 'overdue' ? t('emptyOverdue') : t('emptyAll')}
         </div>
       ) : (
         <ul className="space-y-3">
@@ -136,21 +142,21 @@ export default function NavigatorConsole() {
                 </div>
                 {c.is_overdue ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">
-                    ⏱ OVERDUE {fmtDuration(intervalToMs(c.overdue_by))} — {c.next_milestone}
+                    {t('overdueBadge', { duration: fmtDuration(intervalToMs(c.overdue_by)), milestone: milestone(c.next_milestone) })}
                   </span>
                 ) : c.next_due ? (
                   <span className="text-xs text-muted">
-                    {c.next_milestone} due {fmtDateTime(c.next_due)}
+                    {t('dueLine', { milestone: milestone(c.next_milestone), date: fmtDateTime(c.next_due) })}
                   </span>
                 ) : (
-                  <span className="text-xs text-emerald-700 font-medium">No pending SLA</span>
+                  <span className="text-xs text-emerald-700 font-medium">{t('noSla')}</span>
                 )}
               </div>
               <Link
                 href={`/navigator/case/${c.id}`}
                 className="mt-2 inline-block text-sm font-medium text-teal-700 underline"
               >
-                Open case
+                {t('openCase')}
               </Link>
             </li>
           ))}

@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { itemsFor, ANSWER_OPTIONS, type Instrument } from '@/lib/scoring';
 
 export default function ScreenClient({ instrument: raw }: { instrument: string }) {
   const instrument = (raw === 'GAD7' ? 'GAD7' : 'PHQ9') as Instrument;
   const items = itemsFor(instrument);
   const router = useRouter();
+  const t = useTranslations('screen');
+  const tc = useTranslations('common');
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -17,6 +20,7 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
 
   const totalSteps = items.length + 1; // + optional free-text screen
   const progress = Math.round((step / totalSteps) * 100);
+  const itemKey = instrument === 'PHQ9' ? 'phq9' : 'gad7';
 
   function answer(value: number) {
     const next = [...answers, value];
@@ -40,7 +44,7 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Something went wrong');
+      if (!res.ok) throw new Error(data.error ?? tc('genericError'));
       localStorage.setItem('jisr_resident_id', data.residentId);
       if (data.crisis?.crisis) {
         router.push(`/emergency?caseId=${data.caseId}`);
@@ -57,7 +61,7 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
     <div className="mx-auto max-w-xl">
       <div className="mb-4">
         <div className="flex justify-between text-xs text-muted">
-          <span>{instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7'} · over the last 2 weeks</span>
+          <span>{instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7'} · {t('lastTwoWeeks')}</span>
           <span>{Math.min(step + 1, totalSteps)} / {totalSteps}</span>
         </div>
         <div
@@ -73,15 +77,15 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
 
       {step < items.length ? (
         <section className="card p-6">
-          <h1 className="text-lg font-semibold leading-snug">{items[step]}</h1>
+          <h1 className="text-lg font-semibold leading-snug">{t(`${itemKey}.items.${step}`)}</h1>
           <div className="mt-5 grid gap-3">
             {ANSWER_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => answer(opt.value)}
-                className="btn btn-outline w-full justify-start text-left text-base"
+                className="btn btn-outline w-full justify-start text-start text-base"
               >
-                {opt.label}
+                {t(`answers.${opt.value}`)}
               </button>
             ))}
           </div>
@@ -90,22 +94,20 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
               onClick={() => { setAnswers(answers.slice(0, -1)); setStep(step - 1); }}
               className="mt-4 text-sm text-muted underline"
             >
-              Back
+              {tc('back')}
             </button>
           )}
         </section>
       ) : (
         <section className="card p-6">
-          <h1 className="text-lg font-semibold">Anything else you want to share? (optional)</h1>
-          <p className="mt-1 text-sm text-muted">
-            Free text is checked by fixed safety rules. You can skip this.
-          </p>
+          <h1 className="text-lg font-semibold">{t('freeTextTitle')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('freeTextHint')}</p>
           <textarea
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
             rows={4}
             className="mt-4 w-full rounded-lg border border-border p-3 text-base"
-            placeholder="Optional…"
+            placeholder={t('placeholder')}
           />
           {error && <p className="mt-3 text-sm text-danger" role="alert">{error}</p>}
           <div className="mt-4 grid gap-3">
@@ -114,14 +116,14 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
               disabled={submitting}
               className="btn btn-primary w-full"
             >
-              {submitting ? 'Scoring…' : 'See my result'}
+              {submitting ? t('scoring') : t('seeResult')}
             </button>
             <button
               onClick={() => submit(false)}
               disabled={submitting}
               className="btn btn-outline w-full"
             >
-              Skip and see my result
+              {t('skip')}
             </button>
           </div>
         </section>

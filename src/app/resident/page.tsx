@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { RiskBadge, StateBadge, fmtDateTime } from '@/components/ui';
 import type { RiskTier } from '@/lib/matching';
 
@@ -15,6 +16,8 @@ interface ResidentCase {
 }
 
 export default function ResidentHome() {
+  const t = useTranslations('resident');
+  const tc = useTranslations('common');
   const [residentId, setResidentId] = useState<string | null>(null);
   const [cases, setCases] = useState<ResidentCase[]>([]);
   const [consentRequired, setConsentRequired] = useState(false);
@@ -40,39 +43,31 @@ export default function ResidentHome() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <section className="card p-6">
-        <h1 className="text-xl font-bold">How are you feeling?</h1>
-        <p className="mt-2 text-sm text-muted">
-          Two short, validated questionnaires. One question at a time, about 2 minutes each.
-          This is a screening, not a diagnosis. No name or ID number is needed — you get a
-          pseudonymous ID.
-        </p>
+        <h1 className="text-xl font-bold">{t('title')}</h1>
+        <p className="mt-2 text-sm text-muted">{t('intro')}</p>
         <div className="mt-5 grid gap-3">
           <Link href="/resident/screen/PHQ9" className="btn btn-primary w-full">
-            Start PHQ-9 (mood, 9 questions)
+            {t('startPhq9')}
           </Link>
           <Link href="/resident/screen/GAD7" className="btn btn-outline w-full">
-            Start GAD-7 (anxiety, 7 questions)
+            {t('startGad7')}
           </Link>
         </div>
       </section>
 
       <section className="card p-6">
-        <h2 className="font-semibold">My follow-ups</h2>
+        <h2 className="font-semibold">{t('followups')}</h2>
         {loading ? (
-          <p className="mt-3 text-sm text-muted">Loading…</p>
+          <p className="mt-3 text-sm text-muted">{tc('loading')}</p>
         ) : consentRequired ? (
           <p className="mt-3 text-sm text-warning">
-            Storing your results is currently turned off, so past results are hidden. You can
-            turn it back on in{' '}
+            {t('consentOff')}{' '}
             <Link href="/resident/consent" className="underline">
-              Privacy &amp; consent
+              {t('consentLink')}
             </Link>
-            .
           </p>
         ) : cases.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">
-            No screenings yet. Your results and follow-up steps will appear here.
-          </p>
+          <p className="mt-3 text-sm text-muted">{t('noneYet')}</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {cases.map((c) => (
@@ -82,27 +77,34 @@ export default function ResidentHome() {
                   <StateBadge state={c.state} />
                 </div>
                 <p className="mt-2 text-sm text-muted">
-                  {c.instrument} score {c.total_score} · {fmtDateTime(c.created_at)}
+                  {t('scoreLine', {
+                    instrument: c.instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7',
+                    score: c.total_score ?? '—',
+                    date: fmtDateTime(c.created_at),
+                  })}
                 </p>
                 <Link
                   href={`/resident/result/${c.id}`}
                   className="mt-1 inline-block text-sm font-medium text-teal-700 underline"
                 >
-                  View result and support options
+                  {t('viewResult')}
                 </Link>
               </li>
             ))}
           </ul>
         )}
-        {residentId && (
-          <p className="mt-4 text-xs text-muted">Your pseudonymous ID is stored on this device only.</p>
-        )}
-        <Link
-          href="/resident/consent"
-          className="mt-3 inline-block text-sm font-medium text-teal-700 underline"
-        >
-          Privacy &amp; consent — control what is stored and shared
-        </Link>
+        {residentId && <p className="mt-4 text-xs text-muted">{t('deviceNote')}</p>}
+        <div className="mt-3 flex flex-col gap-1">
+          <Link href="/resident/consent" className="text-sm font-medium text-teal-700 underline">
+            {t('consentLink')}
+          </Link>
+          <Link href="/resident/summary" className="text-sm font-medium text-teal-700 underline">
+            {t('summaryLink')}
+          </Link>
+          <Link href="/resident/wearable" className="text-sm font-medium text-teal-700 underline">
+            {t('wearableLink')}
+          </Link>
+        </div>
       </section>
     </div>
   );

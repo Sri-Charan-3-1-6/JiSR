@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { LocaleEffects } from "@/components/locale-effects";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +23,21 @@ export const metadata: Metadata = {
     "Prototype bridging a positive mental-health screen to real human follow-up. Synthetic data only.",
 };
 
+async function IntlShell({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const t = await getTranslations("common");
+  return (
+    <NextIntlClientProvider>
+      <LocaleEffects locale={locale} />
+      <Header />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+      <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted">
+        {t("footer")}
+      </footer>
+    </NextIntlClientProvider>
+  );
+}
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -26,12 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Header />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted">
-          JISR prototype — all data is synthetic. Built to plug into hospital systems later;
-          no real hospital integration or clinical validation is claimed.
-        </footer>
+        <Suspense fallback={null}>
+          <IntlShell>{children}</IntlShell>
+        </Suspense>
       </body>
     </html>
   );

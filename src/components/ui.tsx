@@ -1,13 +1,7 @@
-import type { RiskTier } from '@/lib/matching';
+'use client';
 
-export const TIER_LABELS: Record<RiskTier, string> = {
-  minimal: 'Minimal',
-  mild: 'Mild',
-  moderate: 'Moderate',
-  moderately_severe: 'Moderately severe',
-  severe: 'Severe',
-  crisis: 'CRITICAL — crisis',
-};
+import { useTranslations } from 'next-intl';
+import type { RiskTier } from '@/lib/matching';
 
 const TIER_CLASSES: Record<RiskTier, string> = {
   minimal: 'bg-emerald-100 text-emerald-900 border-emerald-300',
@@ -19,26 +13,19 @@ const TIER_CLASSES: Record<RiskTier, string> = {
 };
 
 export function RiskBadge({ tier }: { tier: RiskTier }) {
+  const t = useTranslations('tiers');
   return (
     <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${TIER_CLASSES[tier]}`}>
-      {TIER_LABELS[tier]}
+      {t(tier)}
     </span>
   );
 }
 
-export const STATE_LABELS: Record<string, string> = {
-  SCREENED: 'Screened',
-  MATCHED: 'Matched',
-  NAVIGATOR_CONTACTED: 'Navigator contacted',
-  BOOKED: 'Booked',
-  ATTENDED: 'Attended',
-  FOLLOWED_UP_30D: 'Followed up (30d)',
-};
-
 export function StateBadge({ state }: { state: string }) {
+  const t = useTranslations('states');
   return (
     <span className="inline-flex rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-medium text-muted">
-      {STATE_LABELS[state] ?? state}
+      {t.has(state) ? t(state) : state}
     </span>
   );
 }

@@ -1,0 +1,429 @@
+{
+  "common": {
+    "back": "Back",
+    "loading": "Loading…",
+    "refresh": "Refresh",
+    "saving": "Saving…",
+    "syntheticBadge": "Prototype — synthetic data",
+    "footer": "JISR prototype — all data is synthetic. Built to plug into hospital systems later; no real hospital integration or clinical validation is claimed.",
+    "screeningNotDiagnosis": "This is a screening, not a diagnosis.",
+    "pseudoId": "Pseudonymous ID",
+    "genericError": "Something went wrong. Please try again.",
+    "language": "Language"
+  },
+  "nav": {
+    "resident": "Resident",
+    "navigator": "Navigator",
+    "healthSystem": "Health System",
+    "employer": "Employer"
+  },
+  "home": {
+    "title": "JISR — a bridge from screening to real human support",
+    "intro": "JISR (“bridge” in Arabic) closes the gap between a positive mental-health screen and real human follow-up. It is not a chatbot and not a mood tracker: validated screening tools, fixed safety rules, and a human care navigator.",
+    "note": "This is a screening, not a diagnosis. All data in this prototype is synthetic.",
+    "residentTitle": "Resident app",
+    "residentDesc": "Take a PHQ-9 or GAD-7 screen, see what your result means, and get matched to the right level of support.",
+    "navigatorTitle": "Navigator console",
+    "navigatorDesc": "Human care navigator queue: risk-first ordering, SLA timers, overdue detection, outreach logging.",
+    "healthTitle": "Health-System dashboard",
+    "healthDesc": "Gap Finder: where follow-up falls through, by language, age, gender, nationality and area."
+  },
+  "tiers": {
+    "minimal": "Minimal",
+    "mild": "Mild",
+    "moderate": "Moderate",
+    "moderately_severe": "Moderately severe",
+    "severe": "Severe",
+    "crisis": "CRITICAL — crisis"
+  },
+  "states": {
+    "SCREENED": "Screened",
+    "MATCHED": "Matched",
+    "NAVIGATOR_CONTACTED": "Navigator contacted",
+    "BOOKED": "Booked",
+    "ATTENDED": "Attended",
+    "FOLLOWED_UP_30D": "Followed up (30d)"
+  },
+  "milestones": {
+    "contact": "contact",
+    "book": "booking",
+    "attend": "attendance",
+    "followup": "follow-up"
+  },
+  "screen": {
+    "lastTwoWeeks": "over the last 2 weeks",
+    "freeTextTitle": "Anything else you want to share? (optional)",
+    "freeTextHint": "Free text is checked by fixed safety rules. You can skip this.",
+    "placeholder": "Optional…",
+    "scoring": "Scoring…",
+    "seeResult": "See my result",
+    "skip": "Skip and see my result",
+    "answers": {
+      "0": "Not at all",
+      "1": "Several days",
+      "2": "More than half the days",
+      "3": "Nearly every day"
+    },
+    "phq9": {
+      "items": {
+        "0": "Little interest or pleasure in doing things",
+        "1": "Feeling down, depressed, or hopeless",
+        "2": "Trouble falling or staying asleep, or sleeping too much",
+        "3": "Feeling tired or having little energy",
+        "4": "Poor appetite or overeating",
+        "5": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+        "6": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "7": "Moving or speaking so slowly that other people could have noticed. Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+        "8": "Thoughts that you would be better off dead, or of hurting yourself in some way"
+      }
+    },
+    "gad7": {
+      "items": {
+        "0": "Feeling nervous, anxious, or on edge",
+        "1": "Not being able to stop or control worrying",
+        "2": "Worrying too much about different things",
+        "3": "Trouble relaxing",
+        "4": "Being so restless that it is hard to sit still",
+        "5": "Becoming easily annoyed or irritable",
+        "6": "Feeling afraid, as if something awful might happen"
+      }
+    }
+  },
+  "result": {
+    "loading": "Loading your result…",
+    "loadError": "Failed to load result",
+    "scoreTitle": "{instrument} score: {score}",
+    "whatMeans": "What this means:",
+    "meansBody": "your answers fall in the {band} range.",
+    "whatNotMeans": "What this does not mean:",
+    "notMeansBody": "this is a screening, not a diagnosis. It does not label you with any condition, and it is not a substitute for a professional assessment.",
+    "whyTitle": "Why this suggestion",
+    "eligibility": "Eligibility:",
+    "handoff": "What happens next:",
+    "accept": "Accept — connect me with support",
+    "accepting": "Saving…",
+    "inProgress": "Your follow-up is in progress. A human navigator can see your case and its deadline.",
+    "clockTitle": "Your follow-up clock",
+    "contactBy": "Human contact by:",
+    "bookBy": "Appointment by:",
+    "followupBy": "Re-screen / check-in by:",
+    "backToFollowups": "Back to my follow-ups",
+    "why": {
+      "minimal": "Your score is in the minimal range (0-4). Most people at this level do well with self-help and a routine check-in.",
+      "mild": "Your score is in the mild range (5-9). Self-help plus community support usually helps at this level; a navigator checks in within 14 days.",
+      "moderate": "Your score is in the moderate range (10-14). Talking to a professional is recommended; you should be contacted within 7 days.",
+      "moderately_severe": "Your score is in the moderately severe range. Specialist support is recommended: a human navigator contacts you within 24 hours and an appointment is arranged within 72 hours.",
+      "severe": "Your score is in the severe range. Specialist support is recommended: a human navigator contacts you within 24 hours and an appointment is arranged within 72 hours.",
+      "crisis": "Your answers suggest you may be at immediate risk. A human will help you right now — this is a fixed safety rule, not an automated judgement about your health."
+    },
+    "sla": {
+      "minimal": "Re-screen in 30 days.",
+      "mild": "Navigator check-in within 14 days.",
+      "moderate": "Human contact within 7 days.",
+      "moderately_severe": "Navigator contact within 24 hours; appointment within 72 hours.",
+      "severe": "Navigator contact within 24 hours; appointment within 72 hours.",
+      "crisis": "Human response immediately."
+    },
+    "options": {
+      "minimal": {
+        "self_help": {
+          "title": "Self-help resources",
+          "eligibility": "Open to everyone — no referral needed.",
+          "handoff": "Read the curated wellbeing guides in the app. We will invite you to re-screen in 30 days."
+        }
+      },
+      "mild": {
+        "self_help": {
+          "title": "Self-help resources",
+          "eligibility": "Open to everyone — no referral needed.",
+          "handoff": "Start with the guided exercises in the app."
+        },
+        "community_support": {
+          "title": "Community support group",
+          "eligibility": "Open to all residents; no diagnosis or referral required.",
+          "handoff": "A navigator shares the next group session and checks in with you within 14 days."
+        }
+      },
+      "moderate": {
+        "primary_care": {
+          "title": "Primary care appointment",
+          "eligibility": "Any resident with a moderate score; no referral needed.",
+          "handoff": "A navigator contacts you within 7 days and helps book a primary-care visit."
+        },
+        "tele_mental_health": {
+          "title": "Tele-mental health session",
+          "eligibility": "Any resident with a moderate score who prefers remote support.",
+          "handoff": "A navigator contacts you within 7 days and arranges a video session."
+        }
+      },
+      "moderately_severe": {
+        "specialist": {
+          "title": "Specialist mental health service",
+          "eligibility": "Residents scoring 15-19 (PHQ-9); navigator arranges the referral.",
+          "handoff": "Navigator calls within 24 hours, books the specialist appointment within 72 hours, and stays with you until you attend."
+        },
+        "tele_mental_health": {
+          "title": "Tele-mental health (urgent)",
+          "eligibility": "Same score range, if you prefer remote or cannot travel.",
+          "handoff": "Navigator contacts you within 24 hours and arranges an urgent video session within 72 hours."
+        }
+      },
+      "severe": {
+        "specialist": {
+          "title": "Specialist mental health service",
+          "eligibility": "Residents scoring 20-27 (PHQ-9) / 15-21 (GAD-7); navigator arranges the referral.",
+          "handoff": "Navigator calls within 24 hours, books the specialist appointment within 72 hours, and stays with you until you attend."
+        },
+        "tele_mental_health": {
+          "title": "Tele-mental health (urgent)",
+          "eligibility": "Same score range, if you prefer remote or cannot travel.",
+          "handoff": "Navigator contacts you within 24 hours and arranges an urgent video session within 72 hours."
+        }
+      },
+      "crisis": {
+        "human_immediately": {
+          "title": "Talk to a human now",
+          "eligibility": "Everyone — no conditions, no waiting.",
+          "handoff": "Emergency guidance is shown immediately and a CRITICAL case is created so a navigator responds right away."
+        }
+      }
+    }
+  },
+  "explain": {
+    "title": "Plain-language explanation",
+    "aiLabel": "AI-assisted wording — the result itself is computed by fixed rules, never by AI.",
+    "templateLabel": "Standard wording (template).",
+    "loading": "Preparing your explanation…"
+  },
+  "resident": {
+    "title": "How are you feeling?",
+    "intro": "Two short, validated questionnaires. One question at a time, about 2 minutes each. This is a screening, not a diagnosis. No name or ID number is needed — you get a pseudonymous ID.",
+    "startPhq9": "Start PHQ-9 (mood, 9 questions)",
+    "startGad7": "Start GAD-7 (anxiety, 7 questions)",
+    "followups": "My follow-ups",
+    "noneYet": "No screenings yet. Your results and follow-up steps will appear here.",
+    "consentOff": "Storing your results is currently turned off, so past results are hidden. You can turn it back on in Privacy & consent.",
+    "consentLink": "Privacy & consent — control what is stored and shared",
+    "deviceNote": "Your pseudonymous ID is stored on this device only.",
+    "viewResult": "View result and support options",
+    "scoreLine": "{instrument} score {score} · {date}",
+    "summaryLink": "Primary-care summary & export",
+    "wearableLink": "Wearable check-in (simulator)"
+  },
+  "consent": {
+    "title": "Privacy & consent",
+    "intro": "Everything is off by default except what a specific action needs. Changes take effect immediately and are recorded in your audit log below.",
+    "pseudoIdLine": "Your pseudonymous ID:",
+    "noResident": "No screenings on this device yet. Complete a screening first, then manage consent here.",
+    "goScreening": "Go to screening",
+    "loadError": "Could not load consent settings. Please try again.",
+    "updateError": "Could not update consent. Nothing was changed.",
+    "auditTitle": "Your consent audit log",
+    "auditHint": "Every grant and revocation, newest first. This log is visible only to you.",
+    "noChanges": "No consent changes yet.",
+    "granted": "Granted",
+    "revoked": "Revoked",
+    "by": "by",
+    "scopes": {
+      "store_results": {
+        "title": "Store my screening results",
+        "description": "Needed to save your result and show your follow-up plan. Turned on automatically when you complete a screening; turn it off any time and your past results are immediately hidden."
+      },
+      "navigator_contact": {
+        "title": "Let a human navigator contact me",
+        "description": "Allows a care navigator to reach out about your follow-up steps."
+      },
+      "share_with_primary_care": {
+        "title": "Share a summary with my primary care",
+        "description": "Allows a one-page summary to be shared with your primary-care clinician."
+      },
+      "anonymous_aggregate_stats": {
+        "title": "Include me in anonymous statistics",
+        "description": "Your data joins anonymous, aggregated counts only. Groups smaller than 10 are never shown."
+      },
+      "wearable_signal": {
+        "title": "Use my wearable signals",
+        "description": "Allows sleep/activity signals to invite you to a check-in. Never used to diagnose."
+      }
+    }
+  },
+  "emergency": {
+    "title": "You are not alone — help is available now",
+    "guidance": {
+      "0": "If you are in immediate danger, contact emergency services now using the placeholder numbers below (verified before any real deployment).",
+      "1": "Stay with someone you trust, or move to a place where other people are nearby.",
+      "2": "Put distance between yourself and anything you could use to hurt yourself.",
+      "3": "Breathe slowly. What you are feeling can change — support helps.",
+      "4": "A human care navigator has been alerted and will respond immediately."
+    },
+    "contacts": "Emergency contacts",
+    "ambulance": "Ambulance / emergency services",
+    "mentalHealthLine": "Mental health support line",
+    "emergencyDepartment": "Nearest emergency department",
+    "talkToHuman": "Talk to a human now",
+    "humanAlerted": "A human has been alerted",
+    "humanAlertedBody": "A CRITICAL case has been created in the navigator queue with an immediate response deadline. In this prototype the navigator console shows the alert; in a live deployment this would page the on-call human navigator.",
+    "openNavigator": "Open navigator console (demo)",
+    "footerNote": "This is a screening, not a diagnosis. Fixed safety rules triggered this page — no AI decision was involved."
+  },
+  "navigator": {
+    "title": "Navigator console",
+    "subtitle": "Queue sorted by risk, then overdue time. Simulated clock:",
+    "offset": "(+{offset} demo offset)",
+    "timeTravel": "Demo time-travel:",
+    "plusOneDay": "+1 day",
+    "plusDays": "+{n} days",
+    "allCases": "All cases ({n})",
+    "overdue": "Overdue ({n})",
+    "loading": "Loading queue…",
+    "loadError": "Failed to load queue",
+    "emptyOverdue": "No overdue cases — every SLA is currently met.",
+    "emptyAll": "No cases yet. Cases appear here after a resident screens.",
+    "overdueBadge": "⏱ OVERDUE {duration} — {milestone}",
+    "dueLine": "{milestone} due {date}",
+    "noSla": "No pending SLA",
+    "openCase": "Open case"
+  },
+  "case": {
+    "backToQueue": "← Back to queue",
+    "meta": "Language: {language} · Age band: {age} · Area: {area} · Screened {date}",
+    "slaBreached": "⏱ SLA BREACHED — {milestone} overdue by {duration}",
+    "nextSla": "Next SLA: {milestone} due {date}",
+    "screening": "Screening",
+    "total": "{instrument} total:",
+    "crisisTriggerItem9": "Crisis trigger: PHQ-9 item 9 > 0 (fixed rule)",
+    "crisisTriggerKeyword": "Crisis trigger: crisis keyword in free text (fixed rule)",
+    "answers": "Answers:",
+    "noScreening": "No screening linked.",
+    "suggestedStep": "Suggested step",
+    "clockTitle": "Follow-up clock",
+    "markAs": "Mark as {state}",
+    "complete": "Follow-up complete.",
+    "logOutreach": "Log outreach attempt",
+    "channel": "Outreach channel",
+    "note": "Note (optional)",
+    "call": "Call",
+    "sms": "SMS",
+    "message": "Message",
+    "reached": "Reached",
+    "notReached": "Not reached",
+    "timeline": "Timeline",
+    "noEvents": "No events yet.",
+    "outreachEvent": "Outreach ({channel}): {outcome}",
+    "loading": "Loading case…",
+    "loadError": "Failed to load case"
+  },
+  "health": {
+    "title": "Gap Finder — Health-System dashboard",
+    "intro": "Where do people fall out of the pathway from screening to follow-up? Seeded synthetic dataset of {n} residents with deliberately injected gaps. All metrics come from SQL views; groups smaller than 10 are suppressed inside the views.",
+    "employerLink": "See the employer-safe view (aggregates only)",
+    "screenToMatch": "Screen → match",
+    "screenToMatchHint": "{matched} of {total} cases matched",
+    "matchToBooked": "Match → booked in SLA",
+    "matchToBookedHint": "Booked within the risk-tier deadline",
+    "bookedToAttended": "Booked → attended",
+    "medianFollowup": "Median time to follow-up",
+    "medianWait": "Median waiting time",
+    "medianWaitHint": "Screening to booking",
+    "crisisCompletion": "Crisis-response completion",
+    "crisisCompletionHint": "{responded} of {total} crisis cases contacted",
+    "adverse": "Adverse events",
+    "adverseHint": "Missed crisis callbacks past SLA",
+    "improved": "Improved at 30 days",
+    "improvedHint": "{improved} of {paired} re-screened · avg score −{reduction}",
+    "fairnessTitle": "Fairness table — conversion vs the best group",
+    "fairnessNote": "A group is flagged as a gap when its conversion is below 80% of the best group in the same dimension. Groups under 10 are hidden to protect privacy. Only residents who consented to anonymous aggregate statistics are counted.",
+    "group": "Group",
+    "n": "n",
+    "best": "best {value}",
+    "gapMatch": "GAP: matching",
+    "gapBook": "GAP: booking",
+    "gapFlag": "Gap flag",
+    "hiddenPrivacy": "Hidden to protect privacy",
+    "suppressedTitle": "Suppressed: fewer than 10 people",
+    "whatIfTitle": "What-if panel",
+    "simBadge": "Simulation, not a real result",
+    "whatIfIntro": "Toggle an intervention to see a deterministic, simulated improvement on the language groups. This is a planning illustration — no real effect is measured or claimed.",
+    "interventionA": "Language-matched navigator outreach",
+    "interventionADesc": "Simulates closing 60% of each language group's screen-to-match gap vs the best group.",
+    "interventionB": "Flexible evening / weekend booking slots",
+    "interventionBDesc": "Simulates closing 50% of each language group's booking-conversion gap.",
+    "languageGroup": "Language group",
+    "now": "now",
+    "simulated": "simulated",
+    "overall": "Overall (weighted)",
+    "simFootnote": "Simulation, not a real result. Deterministic arithmetic on the seeded synthetic data; no model, no randomness.",
+    "loading": "Loading dashboard…",
+    "error": "Could not load dashboard data. Please try again.",
+    "dimensions": {
+      "language": "Language",
+      "age_band": "Age band",
+      "gender": "Gender",
+      "nationality": "Nationality group",
+      "area": "Area"
+    }
+  },
+  "employer": {
+    "title": "Employer view — anonymous aggregates only",
+    "banner": "No identifiable wellbeing data is ever shown to employers.",
+    "note": "Only anonymous counts are available on this page. Groups under 10 are hidden to protect privacy and shown as “<10”. Individual scores, cases and crisis information are never exposed here. Counts include only residents who consented to anonymous aggregate statistics.",
+    "screeningsTotal": "Screenings completed (total)",
+    "residentsTotal": "Residents in programme",
+    "suppressedNotCounted": "Suppressed groups are not counted here.",
+    "byLanguage": "By language",
+    "byAge": "By age band",
+    "byArea": "By area",
+    "byNationality": "By nationality",
+    "group": "Group",
+    "residents": "Residents",
+    "suppressedTitle": "Suppressed: fewer than 10 people in this group",
+    "loading": "Loading…",
+    "error": "Could not load aggregate data. Please try again.",
+    "languages": {
+      "en": "English",
+      "ar": "Arabic",
+      "hi": "Hindi"
+    }
+  },
+  "summary": {
+    "title": "Primary-care summary",
+    "intro": "A one-page summary you can print or share with your primary-care clinician. Available only with your consent.",
+    "consentRequired": "Sharing with primary care is currently turned off. Turn on “Share a summary with my primary care” to view this page.",
+    "consentLink": "Open Privacy & consent",
+    "print": "Print summary",
+    "downloadFhir": "Download FHIR-shaped JSON",
+    "interoperable": "Interoperability-ready export (FHIR-shaped QuestionnaireResponse / Observation). Not certified.",
+    "trend": "Score trend",
+    "conditions": "Self-reported physical conditions",
+    "sleepFlag": "Sleep difficulty flag",
+    "painFlag": "Pain flag",
+    "followupStatus": "Follow-up status",
+    "noneRecorded": "None recorded.",
+    "yes": "Yes",
+    "no": "No",
+    "generatedAt": "Generated {date} · pseudonymous ID {id}",
+    "loading": "Loading summary…",
+    "error": "Could not load the summary. Please try again.",
+    "noScreenings": "No screenings recorded yet."
+  },
+  "wearable": {
+    "title": "Wearable check-in",
+    "simulatedNote": "Simulated data; real wearable integration is future work.",
+    "intro": "With your consent, sleep and activity signals are compared against your own baseline. A change only ever invites a check-in — it never diagnoses anything.",
+    "consentRequired": "Wearable signals are currently turned off. Turn on “Use my wearable signals” to try the simulator.",
+    "consentLink": "Open Privacy & consent",
+    "loadDemo": "Load demo data",
+    "loading": "Loading signals…",
+    "error": "Could not load wearable data. Please try again.",
+    "baseline": "Your baseline",
+    "recent": "Last 3 days",
+    "sleep": "Sleep (hours)",
+    "steps": "Steps",
+    "changedTitle": "We noticed a change. Want to check in?",
+    "changedBody": "Your recent sleep or activity is lower than your usual baseline. That can have many everyday causes. A short screening is a gentle way to check how you are doing.",
+    "checkIn": "Start a check-in screening",
+    "noChange": "No notable change from your baseline. No action needed.",
+    "insufficient": "Not enough data yet to compare against your baseline. Load demo data to see how it works.",
+    "neverDiagnoses": "This simulator never diagnoses, scores, or decides crisis. Screening invitations are its only output."
+  }
+}

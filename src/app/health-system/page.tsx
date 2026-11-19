@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Metrics {
   cases_total: string;
@@ -36,14 +37,6 @@ interface FairnessRow {
   is_gap_booked: boolean;
 }
 
-const DIMENSION_LABELS: Record<string, string> = {
-  language: 'Language',
-  age_band: 'Age band',
-  gender: 'Gender',
-  nationality: 'Nationality group',
-  area: 'Area',
-};
-
 const num = (v: string | number | null | undefined) =>
   v === null || v === undefined ? null : Number(v);
 const pct = (v: string | number | null | undefined) => {
@@ -71,6 +64,7 @@ function MetricCard({ label, value, hint, alert }: {
 }
 
 export default function HealthSystemPage() {
+  const t = useTranslations('health');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [improvement, setImprovement] = useState<Improvement | null>(null);
   const [fairness, setFairness] = useState<FairnessRow[]>([]);
@@ -94,8 +88,9 @@ export default function HealthSystemPage() {
         setSuppressed(d.suppressed ?? []);
         setResidentsTotal(d.counts?.residents_total ?? null);
       })
-      .catch(() => setError('Could not load dashboard data. Please try again.'))
+      .catch(() => setError(t('error')))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dimensions = useMemo(() => {
@@ -134,12 +129,12 @@ export default function HealthSystemPage() {
   }, [fairness, metrics, langOutreach, flexSlots]);
 
   if (loading) {
-    return <div className="card mx-auto max-w-xl p-6 text-sm text-muted">Loading dashboard…</div>;
+    return <div className="card mx-auto max-w-xl p-6 text-sm text-muted">{t('loading')}</div>;
   }
   if (error || !metrics) {
     return (
       <div role="alert" className="card mx-auto max-w-xl border-danger p-6 text-sm text-danger">
-        {error ?? 'No data available.'}
+        {error ?? t('error')}
       </div>
     );
   }
@@ -147,89 +142,85 @@ export default function HealthSystemPage() {
   return (
     <div className="space-y-6">
       <section className="card p-6">
-        <h1 className="text-xl font-bold">Gap Finder — Health-System dashboard</h1>
-        <p className="mt-2 text-sm text-muted">
-          Where do people fall out of the pathway from screening to follow-up? Seeded synthetic
-          dataset of {residentsTotal ?? '—'} residents with deliberately injected gaps. All
-          metrics come from SQL views; groups smaller than 10 are suppressed inside the views.
-        </p>
+        <h1 className="text-xl font-bold">{t('title')}</h1>
+        <p className="mt-2 text-sm text-muted">{t('intro', { n: residentsTotal ?? '—' })}</p>
         <Link href="/employer" className="mt-2 inline-block text-sm font-medium text-teal-700 underline">
-          See the employer-safe view (aggregates only)
+          {t('employerLink')}
         </Link>
       </section>
 
       <section aria-label="Pathway metrics" className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MetricCard label="Screen → match" value={pct(metrics.screen_to_match_rate)}
-          hint={`${metrics.matched_total} of ${metrics.cases_total} cases matched`} />
-        <MetricCard label="Match → booked in SLA" value={pct(metrics.match_to_booked_sla_rate)}
-          hint="Booked within the risk-tier deadline" />
-        <MetricCard label="Booked → attended" value={pct(metrics.booked_to_attended_rate)} />
-        <MetricCard label="Median time to follow-up" value={days(metrics.median_days_to_followup)} />
-        <MetricCard label="Median waiting time" value={days(metrics.median_waiting_days)}
-          hint="Screening to booking" />
-        <MetricCard label="Crisis-response completion" value={pct(metrics.crisis_response_completion)}
-          hint={`${metrics.crisis_responded} of ${metrics.crisis_total} crisis cases contacted`} />
-        <MetricCard label="Adverse events" value={metrics.adverse_missed_crisis_callbacks}
-          hint="Missed crisis callbacks past SLA"
+        <MetricCard label={t('screenToMatch')} value={pct(metrics.screen_to_match_rate)}
+          hint={t('screenToMatchHint', { matched: metrics.matched_total, total: metrics.cases_total })} />
+        <MetricCard label={t('matchToBooked')} value={pct(metrics.match_to_booked_sla_rate)}
+          hint={t('matchToBookedHint')} />
+        <MetricCard label={t('bookedToAttended')} value={pct(metrics.booked_to_attended_rate)} />
+        <MetricCard label={t('medianFollowup')} value={days(metrics.median_days_to_followup)} />
+        <MetricCard label={t('medianWait')} value={days(metrics.median_waiting_days)}
+          hint={t('medianWaitHint')} />
+        <MetricCard label={t('crisisCompletion')} value={pct(metrics.crisis_response_completion)}
+          hint={t('crisisCompletionHint', { responded: metrics.crisis_responded, total: metrics.crisis_total })} />
+        <MetricCard label={t('adverse')} value={metrics.adverse_missed_crisis_callbacks}
+          hint={t('adverseHint')}
           alert={Number(metrics.adverse_missed_crisis_callbacks) > 0} />
-        <MetricCard label="Improved at 30 days" value={pct(improvement?.improvement_rate)}
+        <MetricCard label={t('improved')} value={pct(improvement?.improvement_rate)}
           hint={
             improvement
-              ? `${improvement.improved} of ${improvement.paired_residents} re-screened · avg score −${improvement.avg_score_reduction ?? '—'}`
+              ? t('improvedHint', {
+                  improved: improvement.improved,
+                  paired: improvement.paired_residents,
+                  reduction: improvement.avg_score_reduction ?? '—',
+                })
               : undefined
           } />
       </section>
 
       <section className="card p-6">
-        <h2 className="font-semibold">Fairness table — conversion vs the best group</h2>
-        <p className="mt-1 text-sm text-muted">
-          A group is flagged as a gap when its conversion is below 80% of the best group in the
-          same dimension. Groups under 10 are hidden to protect privacy. Only residents who
-          consented to anonymous aggregate statistics are counted.
-        </p>
+        <h2 className="font-semibold">{t('fairnessTitle')}</h2>
+        <p className="mt-1 text-sm text-muted">{t('fairnessNote')}</p>
         <div className="mt-4 space-y-6">
           {dimensions.map(({ dim, rows }) => (
             <div key={dim}>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                {DIMENSION_LABELS[dim] ?? dim}
+                {t(`dimensions.${dim}`)}
               </h3>
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs text-muted">
-                      <th className="py-2 pr-3">Group</th>
-                      <th className="py-2 pr-3">n</th>
-                      <th className="py-2 pr-3">Screen → match</th>
-                      <th className="py-2 pr-3">Match → booked (SLA)</th>
-                      <th className="py-2 pr-3">Booked → attended</th>
-                      <th className="py-2 pr-3">Median wait</th>
-                      <th className="py-2">Gap flag</th>
+                    <tr className="border-b border-border text-start text-xs text-muted">
+                      <th className="py-2 pe-3 text-start">{t('group')}</th>
+                      <th className="py-2 pe-3 text-start">{t('n')}</th>
+                      <th className="py-2 pe-3 text-start">{t('screenToMatch')}</th>
+                      <th className="py-2 pe-3 text-start">{t('matchToBooked')}</th>
+                      <th className="py-2 pe-3 text-start">{t('bookedToAttended')}</th>
+                      <th className="py-2 pe-3 text-start">{t('medianWait')}</th>
+                      <th className="py-2 text-start">{t('gapFlag')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.group_value} className="border-b border-border/60">
-                        <td className="py-2 pr-3 font-medium">{r.group_value}</td>
-                        <td className="py-2 pr-3">{r.n}</td>
-                        <td className="py-2 pr-3">
+                        <td className="py-2 pe-3 font-medium">{r.group_value}</td>
+                        <td className="py-2 pe-3">{r.n}</td>
+                        <td className="py-2 pe-3">
                           {pct(r.screen_to_match)}
-                          <span className="ml-1 text-xs text-muted">
-                            (best {pct(r.best_screen_to_match)})
+                          <span className="ms-1 text-xs text-muted">
+                            ({t('best', { value: pct(r.best_screen_to_match) })})
                           </span>
                         </td>
-                        <td className="py-2 pr-3">{pct(r.match_to_booked_sla)}</td>
-                        <td className="py-2 pr-3">{pct(r.booked_to_attended)}</td>
-                        <td className="py-2 pr-3">{days(r.median_waiting_days)}</td>
+                        <td className="py-2 pe-3">{pct(r.match_to_booked_sla)}</td>
+                        <td className="py-2 pe-3">{pct(r.booked_to_attended)}</td>
+                        <td className="py-2 pe-3">{days(r.median_waiting_days)}</td>
                         <td className="py-2">
                           <span className="flex flex-wrap gap-1">
                             {r.is_gap && (
                               <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 border border-red-200">
-                                GAP: matching
+                                {t('gapMatch')}
                               </span>
                             )}
                             {r.is_gap_booked && (
                               <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900 border border-amber-200">
-                                GAP: booking
+                                {t('gapBook')}
                               </span>
                             )}
                             {!r.is_gap && !r.is_gap_booked && (
@@ -243,13 +234,13 @@ export default function HealthSystemPage() {
                       .filter((s) => s.dimension === dim)
                       .map((s) => (
                         <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
-                          <td className="py-2 pr-3 font-medium">{s.group_value}</td>
-                          <td className="py-2 pr-3" title="Suppressed: fewer than 10 people">&lt;10</td>
-                          <td className="py-2 pr-3">—</td>
-                          <td className="py-2 pr-3">—</td>
-                          <td className="py-2 pr-3">—</td>
-                          <td className="py-2 pr-3">—</td>
-                          <td className="py-2 text-xs">Hidden to protect privacy</td>
+                          <td className="py-2 pe-3 font-medium">{s.group_value}</td>
+                          <td className="py-2 pe-3" title={t('suppressedTitle')}>&lt;10</td>
+                          <td className="py-2 pe-3">—</td>
+                          <td className="py-2 pe-3">—</td>
+                          <td className="py-2 pe-3">—</td>
+                          <td className="py-2 pe-3">—</td>
+                          <td className="py-2 text-xs">{t('hiddenPrivacy')}</td>
                         </tr>
                       ))}
                   </tbody>
@@ -262,15 +253,12 @@ export default function HealthSystemPage() {
 
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold">What-if panel</h2>
+          <h2 className="font-semibold">{t('whatIfTitle')}</h2>
           <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-1 text-xs font-semibold text-amber-900">
-            Simulation, not a real result
+            {t('simBadge')}
           </span>
         </div>
-        <p className="mt-1 text-sm text-muted">
-          Toggle an intervention to see a deterministic, simulated improvement on the language
-          groups. This is a planning illustration — no real effect is measured or claimed.
-        </p>
+        <p className="mt-1 text-sm text-muted">{t('whatIfIntro')}</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3">
             <input
@@ -280,10 +268,8 @@ export default function HealthSystemPage() {
               className="mt-1 h-5 w-5 accent-teal-700"
             />
             <span>
-              <span className="font-medium">Language-matched navigator outreach</span>
-              <span className="block text-xs text-muted">
-                Simulates closing 60% of each language group&apos;s screen-to-match gap vs the best group.
-              </span>
+              <span className="font-medium">{t('interventionA')}</span>
+              <span className="block text-xs text-muted">{t('interventionADesc')}</span>
             </span>
           </label>
           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3">
@@ -294,10 +280,8 @@ export default function HealthSystemPage() {
               className="mt-1 h-5 w-5 accent-teal-700"
             />
             <span>
-              <span className="font-medium">Flexible evening / weekend booking slots</span>
-              <span className="block text-xs text-muted">
-                Simulates closing 50% of each language group&apos;s booking-conversion gap.
-              </span>
+              <span className="font-medium">{t('interventionB')}</span>
+              <span className="block text-xs text-muted">{t('interventionBDesc')}</span>
             </span>
           </label>
         </div>
@@ -305,45 +289,42 @@ export default function HealthSystemPage() {
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[480px] text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs text-muted">
-                  <th className="py-2 pr-3">Language group</th>
-                  <th className="py-2 pr-3">Screen → match (now)</th>
-                  <th className="py-2 pr-3">Screen → match (simulated)</th>
-                  <th className="py-2 pr-3">Match → booked (now)</th>
-                  <th className="py-2">Match → booked (simulated)</th>
+                <tr className="border-b border-border text-xs text-muted">
+                  <th className="py-2 pe-3 text-start">{t('languageGroup')}</th>
+                  <th className="py-2 pe-3 text-start">{t('screenToMatch')} ({t('now')})</th>
+                  <th className="py-2 pe-3 text-start">{t('screenToMatch')} ({t('simulated')})</th>
+                  <th className="py-2 pe-3 text-start">{t('matchToBooked')} ({t('now')})</th>
+                  <th className="py-2 text-start">{t('matchToBooked')} ({t('simulated')})</th>
                 </tr>
               </thead>
               <tbody>
                 {simulation.simRows.map((r) => (
                   <tr key={r.group} className="border-b border-border/60">
-                    <td className="py-2 pr-3 font-medium">{r.group}</td>
-                    <td className="py-2 pr-3">{pct(r.m)}</td>
-                    <td className={`py-2 pr-3 ${langOutreach ? 'font-semibold text-teal-700' : ''}`}>
+                    <td className="py-2 pe-3 font-medium">{r.group}</td>
+                    <td className="py-2 pe-3">{pct(r.m)}</td>
+                    <td className={`py-2 pe-3 ${langOutreach ? 'font-semibold text-teal-700' : ''}`}>
                       {pct(r.simM)}
                     </td>
-                    <td className="py-2 pr-3">{pct(r.b)}</td>
+                    <td className="py-2 pe-3">{pct(r.b)}</td>
                     <td className={`py-2 ${flexSlots ? 'font-semibold text-teal-700' : ''}`}>
                       {pct(r.simB)}
                     </td>
                   </tr>
                 ))}
                 <tr className="font-semibold">
-                  <td className="py-2 pr-3">Overall (weighted)</td>
-                  <td className="py-2 pr-3">{pct(simulation.baseMatch)}</td>
-                  <td className={`py-2 pr-3 ${langOutreach ? 'text-teal-700' : ''}`}>
+                  <td className="py-2 pe-3">{t('overall')}</td>
+                  <td className="py-2 pe-3">{pct(simulation.baseMatch)}</td>
+                  <td className={`py-2 pe-3 ${langOutreach ? 'text-teal-700' : ''}`}>
                     {pct(simulation.simMatch)}
                   </td>
-                  <td className="py-2 pr-3">{pct(simulation.baseBooked)}</td>
+                  <td className="py-2 pe-3">{pct(simulation.baseBooked)}</td>
                   <td className={`py-2 ${flexSlots ? 'text-teal-700' : ''}`}>
                     {pct(simulation.simBooked)}
                   </td>
                 </tr>
               </tbody>
             </table>
-            <p className="mt-2 text-xs text-muted">
-              Simulation, not a real result. Deterministic arithmetic on the seeded synthetic
-              data; no model, no randomness.
-            </p>
+            <p className="mt-2 text-xs text-muted">{t('simFootnote')}</p>
           </div>
         )}
       </section>

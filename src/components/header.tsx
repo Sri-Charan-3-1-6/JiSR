@@ -2,16 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 const PORTALS = [
-  { href: '/resident', label: 'Resident' },
-  { href: '/navigator', label: 'Navigator' },
-  { href: '/health-system', label: 'Health System' },
-  { href: '/employer', label: 'Employer' },
-];
+  { href: '/resident', key: 'resident' },
+  { href: '/navigator', key: 'navigator' },
+  { href: '/health-system', key: 'healthSystem' },
+  { href: '/employer', key: 'employer' },
+] as const;
 
 export function RoleSwitcher() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
   return (
     <nav aria-label="Role switcher" className="flex gap-1 rounded-lg bg-white/10 p-1">
       {PORTALS.map((p) => {
@@ -25,7 +28,7 @@ export function RoleSwitcher() {
               active ? 'bg-white text-teal-800' : 'text-teal-50 hover:bg-white/15'
             }`}
           >
-            {p.label}
+            {t(p.key)}
           </Link>
         );
       })}
@@ -34,9 +37,10 @@ export function RoleSwitcher() {
 }
 
 export function SyntheticBadge() {
+  const t = useTranslations('common');
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 border border-amber-300">
-      Prototype — synthetic data
+      {t('syntheticBadge')}
     </span>
   );
 }
@@ -51,6 +55,7 @@ export function Header() {
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <RoleSwitcher />
+          <LanguageSwitcher />
           <SyntheticBadge />
         </div>
       </div>
