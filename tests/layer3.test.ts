@@ -1,35 +1,64 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { explainResult, llmExplanation } from '@/lib/llm';
+import { explainResult, generateExplanation, resetBreaker, resetModelCache } from '@/lib/llm';
 import { explainTemplate, type ExplainInput } from '@/lib/explain';
 import { detectChange, type WearableDay } from '@/lib/wearable';
 import { buildFhirBundle } from '@/lib/fhir';
 
+beforeEach(() => {
+  resetBreaker();
+  resetModelCache();
+});
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  resetBreaker();
+  resetModelCache();
 });
 
 const input: ExplainInput = { instrument: 'PHQ9', total: 12, band: 'moderate', language: 'en' };
 
 function stubKey() {
-  vi.stubEnv('LLM_API_KEY', 'test-key-not-real');
-  vi.stubEnv('OPENAI_API_KEY', '');
+  vi.stubEnv('OPENROUTER_API_KEY', 'test-key-not-real');
+  vi.stubEnv('LLM2_BASE_URL', '');
+  vi.stubEnv('LLM2_API_KEY', '');
+  vi.stubEnv('LLM2_MODEL', '');
 }
 function noKey() {
-  vi.stubEnv('LLM_API_KEY', '');
-  vi.stubEnv('OPENAI_API_KEY', '');
+  vi.stubEnv('OPENROUTER_API_KEY', '');
+  vi.stubEnv('LLM2_BASE_URL', '');
+  vi.stubEnv('LLM2_API_KEY', '');
+  vi.stubEnv('LLM2_MODEL', '');
 }
+
+const MODELS_PAYLOAD = {
+  data: Array.from({ length: 9 }, (_, i) => ({
+    id: `test/model-${i}:free`,
+    pricing: { prompt: '0', completion: '0' },
+  })),
+};
+const VALID_EN =
+  'Your answers suggest a moderate level of symptoms right now. This is a screening, not a diagnosis, so it does not label you. The support steps shown below are a good next step.';
+
+// Routes the free-model discovery call separately from chat completions.
+function chatFetch(chat: () => Promise<unknown>) {
+  return vi.fn(async (url: unknown) => {
+    if (String(url).endsWith('/models')) return { ok: true, json: async () => MODELS_PAYLOAD };
+    return chat();
+  });
+}
+const chatCalls = (m: ReturnType<typeof vi.fn>) =>
+  m.mock.calls.filter(([u]) => String(u).includes('/chat/completions'));
 
 describe('LLM explanation with template fallback (hard rule 2)', () => {
   it('falls back to the template when the LLM call fails', async () => {
     stubKey();
-    const fetchMock = vi.fn().mockRejectedValue(new Error('network down'));
+    const fetchMock = chatFetch(() => Promise.reject(new Error('network down')));
     vi.stubGlobal('fetch', fetchMock);
-    const r = await explainResult(input);
-    expect(fetchMock).toHaveBeenCalledOnce();
+    const r = await generateExplanation(input);
+    expect(chatCalls(fetchMock).length).toBeGreaterThan(0);
     expect(r.source).toBe('template');
     expect(r.text).toBe(explainTemplate(input));
     expect(r.text).toContain('screening, not a diagnosis');
@@ -37,18 +66,18 @@ describe('LLM explanation with template fallback (hard rule 2)', () => {
 
   it('falls back to the template on a non-OK HTTP response', async () => {
     stubKey();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
-    const r = await explainResult(input);
+    vi.stubGlobal('fetch', chatFetch(async () => ({ ok: false, status: 500, text: async () => '' })));
+    const r = await generateExplanation(input);
     expect(r.source).toBe('template');
   });
 
   it('falls back to the template when the response has no content', async () => {
     stubKey();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', chatFetch(async () => ({
       ok: true,
       json: async () => ({ choices: [{ message: { content: '   ' } }] }),
-    }));
-    const r = await explainResult(input);
+    })));
+    const r = await generateExplanation(input);
     expect(r.source).toBe('template');
   });
 
@@ -56,10 +85,9 @@ describe('LLM explanation with template fallback (hard rule 2)', () => {
     noKey();
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    const r = await explainResult(input);
+    const r = await generateExplanation(input);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(r.source).toBe('template');
-    expect(await llmExplanation(input)).toBeNull();
   });
 
   it('NEVER calls the LLM for a crisis band, even with a key', async () => {
@@ -72,29 +100,29 @@ describe('LLM explanation with template fallback (hard rule 2)', () => {
     expect(r.text).toContain('talk to a human right now');
   });
 
-  it('uses the LLM text when the call succeeds (non-crisis)', async () => {
+  it('uses the LLM text when the call succeeds and passes validation (non-crisis)', async () => {
     stubKey();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', chatFetch(async () => ({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: 'A kind explanation.' } }] }),
-    }));
-    const r = await explainResult(input);
-    expect(r).toEqual({ text: 'A kind explanation.', source: 'llm' });
+      json: async () => ({ model: 'test/model-0:free', choices: [{ message: { content: VALID_EN } }] }),
+    })));
+    const r = await generateExplanation(input);
+    expect(r).toEqual({ text: VALID_EN, source: 'llm', model: 'test/model-0:free' });
   });
 
   it('never sends the API key anywhere except the Authorization header', async () => {
     stubKey();
-    const fetchMock = vi.fn().mockResolvedValue({
+    const fetchMock = chatFetch(async () => ({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: 'ok' } }] }),
-    });
+      json: async () => ({ model: 'test/model-0:free', choices: [{ message: { content: VALID_EN } }] }),
+    }));
     vi.stubGlobal('fetch', fetchMock);
-    await explainResult(input);
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain('/chat/completions');
+    await generateExplanation(input);
+    const [url, init] = chatCalls(fetchMock)[0] as [string, { headers: Record<string, string>; body: string }];
+    expect(url).toContain('/chat/completions');
     expect(init.headers.Authorization).toBe('Bearer test-key-not-real');
     expect(init.body).not.toContain('test-key-not-real');
-    expect(String(init.body)).toContain('You do NOT diagnose');
+    expect(init.body).toContain('You do NOT diagnose');
   });
 
   it('has a non-empty template for every band in every language, always screening-not-diagnosis', () => {

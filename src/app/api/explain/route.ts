@@ -6,6 +6,9 @@ const INSTRUMENTS = ['PHQ9', 'GAD7'];
 const LANGUAGES = ['en', 'ar', 'hi'];
 const BANDS = ['minimal', 'mild', 'moderate', 'moderately_severe', 'severe', 'crisis'];
 
+// Worst case: several 8s provider attempts before the template fallback.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { instrument, total, band, language } = body ?? {};
