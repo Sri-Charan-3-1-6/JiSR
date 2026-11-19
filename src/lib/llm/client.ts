@@ -54,6 +54,9 @@ export function resetBreaker() {
   consecutiveFailures = 0;
   breakerOpenUntil = 0;
 }
+export function breakerRemainingMs(): number {
+  return Math.max(0, breakerOpenUntil - Date.now());
+}
 function breakerOpen() {
   return Date.now() < breakerOpenUntil;
 }
