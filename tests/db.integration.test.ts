@@ -7,8 +7,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool, type PoolClient } from 'pg';
 
+const url = process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5433/jisr';
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5433/jisr',
+  connectionString: url,
+  ssl: /localhost|127\.0\.0\.1/.test(url) ? undefined : { rejectUnauthorized: false },
   max: 2,
 });
 

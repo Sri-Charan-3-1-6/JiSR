@@ -7,7 +7,11 @@ import pg from 'pg';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5433/jisr';
-const client = new pg.Client({ connectionString: url });
+const isLocal = /localhost|127\.0\.0\.1/.test(url);
+const client = new pg.Client({
+  connectionString: url,
+  ssl: isLocal ? undefined : { rejectUnauthorized: false },
+});
 await client.connect();
 
 await client.query(`create table if not exists schema_migrations (

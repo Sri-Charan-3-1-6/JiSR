@@ -1,9 +1,13 @@
 import { Pool } from 'pg';
 
 // Raw SQL only, parameterized queries only (database rules — no ORM).
+const url = process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5433/jisr';
+const isLocal = /localhost|127\.0\.0\.1/.test(url);
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5433/jisr',
+  connectionString: url,
+  // Supabase's pooler presents a self-signed chain; pinning their CA is
+  // future work (see README limitations). Local Postgres needs no SSL.
+  ssl: isLocal ? undefined : { rejectUnauthorized: false },
   max: 5,
 });
 
