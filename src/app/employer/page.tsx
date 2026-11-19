@@ -18,6 +18,7 @@ const LANGUAGES = [
 ];
 const AGE_BANDS = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
 const AREAS = ['Area 1', 'Area 2', 'Area 3', 'Area 4', 'Area 5'];
+const NATIONALITIES = ['Group A', 'Group B', 'Group C', 'Group D', 'Group S'];
 
 function CountTable({ title, labels, rows }: {
   title: string;
@@ -66,6 +67,7 @@ export default function EmployerPage() {
   const [areas, setAreas] = useState<GroupCount[]>([]);
   const [languages, setLanguages] = useState<GroupCount[]>([]);
   const [ages, setAges] = useState<GroupCount[]>([]);
+  const [nationalities, setNationalities] = useState<GroupCount[]>([]);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export default function EmployerPage() {
         setAreas(d.areas);
         setLanguages(d.languages);
         setAges(d.ages);
+        setNationalities(d.nationalities);
         setTotals(d.totals);
       })
       .catch(() => setError('Could not load aggregate data. Please try again.'))
@@ -94,9 +97,10 @@ export default function EmployerPage() {
           No identifiable wellbeing data is ever shown to employers.
         </p>
         <p className="mt-3 text-sm text-muted">
-          Only anonymous counts are available on this page. Any group smaller than 10 people is
-          suppressed inside the database views and shown as &ldquo;&lt;10&rdquo;. Individual
-          scores, cases and crisis information are never exposed here.
+          Only anonymous counts are available on this page. Groups under 10 are hidden to
+          protect privacy and shown as &ldquo;&lt;10&rdquo;. Individual scores, cases and crisis
+          information are never exposed here. Counts include only residents who consented to
+          anonymous aggregate statistics.
         </p>
       </section>
 
@@ -125,7 +129,7 @@ export default function EmployerPage() {
               <p className="mt-1 text-xs text-muted">Suppressed groups are not counted here.</p>
             </div>
           </section>
-          <section className="grid gap-3 sm:grid-cols-3">
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <CountTable title="By language" labels={LANGUAGES} rows={languages} />
             <CountTable
               title="By age band"
@@ -136,6 +140,11 @@ export default function EmployerPage() {
               title="By area"
               labels={AREAS.map((v) => ({ value: v, label: v }))}
               rows={areas}
+            />
+            <CountTable
+              title="By nationality"
+              labels={NATIONALITIES.map((v) => ({ value: v, label: v }))}
+              rows={nationalities}
             />
           </section>
         </>

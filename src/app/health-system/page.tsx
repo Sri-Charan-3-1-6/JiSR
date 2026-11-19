@@ -74,6 +74,7 @@ export default function HealthSystemPage() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [improvement, setImprovement] = useState<Improvement | null>(null);
   const [fairness, setFairness] = useState<FairnessRow[]>([]);
+  const [suppressed, setSuppressed] = useState<{ dimension: string; group_value: string }[]>([]);
   const [residentsTotal, setResidentsTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +91,7 @@ export default function HealthSystemPage() {
         setMetrics(d.metrics);
         setImprovement(d.improvement);
         setFairness(d.fairness);
+        setSuppressed(d.suppressed ?? []);
         setResidentsTotal(d.counts?.residents_total ?? null);
       })
       .catch(() => setError('Could not load dashboard data. Please try again.'))
@@ -182,8 +184,8 @@ export default function HealthSystemPage() {
         <h2 className="font-semibold">Fairness table — conversion vs the best group</h2>
         <p className="mt-1 text-sm text-muted">
           A group is flagged as a gap when its conversion is below 80% of the best group in the
-          same dimension. Groups with fewer than 10 people are suppressed in the SQL views and
-          never appear here.
+          same dimension. Groups under 10 are hidden to protect privacy. Only residents who
+          consented to anonymous aggregate statistics are counted.
         </p>
         <div className="mt-4 space-y-6">
           {dimensions.map(({ dim, rows }) => (
@@ -237,6 +239,19 @@ export default function HealthSystemPage() {
                         </td>
                       </tr>
                     ))}
+                    {suppressed
+                      .filter((s) => s.dimension === dim)
+                      .map((s) => (
+                        <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
+                          <td className="py-2 pr-3 font-medium">{s.group_value}</td>
+                          <td className="py-2 pr-3" title="Suppressed: fewer than 10 people">&lt;10</td>
+                          <td className="py-2 pr-3">—</td>
+                          <td className="py-2 pr-3">—</td>
+                          <td className="py-2 pr-3">—</td>
+                          <td className="py-2 pr-3">—</td>
+                          <td className="py-2 text-xs">Hidden to protect privacy</td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>

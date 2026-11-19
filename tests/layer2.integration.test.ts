@@ -27,7 +27,14 @@ async function makeResident(c: PoolClient, pseudoId: string, area: string) {
     `insert into residents (pseudo_id, language, area) values ($1, 'en', $2) returning id`,
     [pseudoId, area],
   );
-  return r.rows[0].id as string;
+  const id = r.rows[0].id as string;
+  // Aggregate views count only residents with anonymous_aggregate_stats ON.
+  await c.query(
+    `insert into consent_scopes (resident_id, scope, granted)
+     values ($1, 'anonymous_aggregate_stats', true)`,
+    [id],
+  );
+  return id;
 }
 
 async function makeScreeningCase(
@@ -61,6 +68,10 @@ async function makeAreaGroup(
        insert into residents (pseudo_id, language, area)
        select $1 || '-' || i, 'en', $1 from generate_series(0, $2 - 1) i
        returning id, pseudo_id
+     ), ins_consent as (
+       insert into consent_scopes (resident_id, scope, granted)
+       select id, 'anonymous_aggregate_stats', true from ins_res
+       returning resident_id
      ), ins_scr as (
        insert into screenings (resident_id, instrument, answers, total_score, band, created_at)
        select id, 'PHQ9', '[]'::jsonb, 12, 'moderate', sim_now() from ins_res
@@ -219,6 +230,74 @@ describe('employer role can read ONLY aggregated views', () => {
       }
       await c.query(`reset role`);
     });
+  });
+});
+
+describe('aggregate views honor anonymous_aggregate_stats consent', () => {
+  it('a resident with the scope OFF is excluded from employer counts and the funnel', async () => {
+    await withFixture(async (c) => {
+      // 10 consenting residents make the area visible; an 11th with consent
+      // OFF must not be counted anywhere.
+      for (let i = 0; i < 10; i++) {
+        await makeResident(c, `TEST-AGG-ON-${i}`, 'TEST-AGG-AREA');
+      }
+      const off = await c.query(
+        `insert into residents (pseudo_id, language, area)
+         values ('TEST-AGG-OFF', 'en', 'TEST-AGG-AREA') returning id`,
+      );
+      const offId = off.rows[0].id;
+      await c.query(
+        `insert into consent_scopes (resident_id, scope, granted)
+         values ($1, 'anonymous_aggregate_stats', false)`,
+        [offId],
+      );
+      await makeScreeningCase(c, offId, { matched: true });
+
+      const area = (await c.query(
+        `select resident_count from employer_area_counts where group_value = 'TEST-AGG-AREA'`,
+      )).rows;
+      expect(Number(area[0].resident_count)).toBe(10);
+
+      const funnel = (await c.query(
+        `select 1 from gapfinder_case_funnel where resident_id = $1`, [offId],
+      )).rows;
+      expect(funnel).toHaveLength(0);
+
+      // Revoking one of the ten drops the group below 10 -> fully suppressed.
+      const one = (await c.query(
+        `select id from residents where pseudo_id = 'TEST-AGG-ON-0'`,
+      )).rows[0].id;
+      await c.query(
+        `update consent_scopes set granted = false
+         where resident_id = $1 and scope = 'anonymous_aggregate_stats'`,
+        [one],
+      );
+      const suppressed = (await c.query(
+        `select 1 from employer_area_counts where group_value = 'TEST-AGG-AREA'`,
+      )).rows;
+      expect(suppressed).toHaveLength(0);
+    });
+  });
+});
+
+describe('seeded small nationality group is visibly suppressed', () => {
+  it('Group S has 7 residents but never appears in employer or fairness views', async () => {
+    const n = (await pool.query(
+      `select count(*)::int as n from residents where nationality = 'Group S'`,
+    )).rows[0].n;
+    expect(n).toBe(7);
+    const employer = (await pool.query(
+      `select 1 from employer_nationality_counts where group_value = 'Group S'`,
+    )).rows;
+    expect(employer).toHaveLength(0);
+    const fairness = (await pool.query(
+      `select 1 from gapfinder_fairness where dimension = 'nationality' and group_value = 'Group S'`,
+    )).rows;
+    expect(fairness).toHaveLength(0);
+    const otherGroups = (await pool.query(
+      `select group_value from employer_nationality_counts order by group_value`,
+    )).rows.map((r) => r.group_value);
+    expect(otherGroups).toEqual(['Group A', 'Group B', 'Group C', 'Group D']);
   });
 });
 
