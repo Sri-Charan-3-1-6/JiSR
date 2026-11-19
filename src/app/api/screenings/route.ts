@@ -54,6 +54,21 @@ export async function POST(req: NextRequest) {
     [residentId, instrument, JSON.stringify(answers), freeText, result.total, result.band, crisis.crisis, crisis.reason, now],
   );
 
+  // Storing the result requires store_results consent — grant exactly what
+  // this action needs, and record it in the audit log (default is OFF).
+  await query(
+    `insert into consent_scopes (resident_id, scope, granted, updated_at)
+     values ($1, 'store_results', true, $2)
+     on conflict (resident_id, scope)
+     do update set granted = true, updated_at = excluded.updated_at`,
+    [residentId, now],
+  );
+  await query(
+    `insert into consent_audit (resident_id, scope, action, actor, created_at)
+     values ($1, 'store_results', 'grant', 'system:screening', $2)`,
+    [residentId, now],
+  );
+
   const kase = await one<{ id: string }>(
     `insert into cases
        (resident_id, screening_id, risk_tier, state, matched_step,

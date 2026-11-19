@@ -7,6 +7,7 @@ const PORTALS = [
   { href: '/resident', label: 'Resident' },
   { href: '/navigator', label: 'Navigator' },
   { href: '/health-system', label: 'Health System' },
+  { href: '/employer', label: 'Employer' },
 ];
 
 export function RoleSwitcher() {

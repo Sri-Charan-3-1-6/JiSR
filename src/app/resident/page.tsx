@@ -17,6 +17,7 @@ interface ResidentCase {
 export default function ResidentHome() {
   const [residentId, setResidentId] = useState<string | null>(null);
   const [cases, setCases] = useState<ResidentCase[]>([]);
+  const [consentRequired, setConsentRequired] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +29,10 @@ export default function ResidentHome() {
     }
     fetch(`/api/residents/${id}/cases`)
       .then((r) => r.json())
-      .then((d) => setCases(d.cases ?? []))
+      .then((d) => {
+        setCases(d.cases ?? []);
+        setConsentRequired(Boolean(d.consentRequired));
+      })
       .catch(() => setCases([]))
       .finally(() => setLoading(false));
   }, []);
@@ -56,6 +60,15 @@ export default function ResidentHome() {
         <h2 className="font-semibold">My follow-ups</h2>
         {loading ? (
           <p className="mt-3 text-sm text-muted">Loading…</p>
+        ) : consentRequired ? (
+          <p className="mt-3 text-sm text-warning">
+            Storing your results is currently turned off, so past results are hidden. You can
+            turn it back on in{' '}
+            <Link href="/resident/consent" className="underline">
+              Privacy &amp; consent
+            </Link>
+            .
+          </p>
         ) : cases.length === 0 ? (
           <p className="mt-3 text-sm text-muted">
             No screenings yet. Your results and follow-up steps will appear here.
@@ -84,6 +97,12 @@ export default function ResidentHome() {
         {residentId && (
           <p className="mt-4 text-xs text-muted">Your pseudonymous ID is stored on this device only.</p>
         )}
+        <Link
+          href="/resident/consent"
+          className="mt-3 inline-block text-sm font-medium text-teal-700 underline"
+        >
+          Privacy &amp; consent — control what is stored and shared
+        </Link>
       </section>
     </div>
   );
