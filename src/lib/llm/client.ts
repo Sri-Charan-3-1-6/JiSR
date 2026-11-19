@@ -13,12 +13,14 @@ import { validateExplanation } from './validate';
 
 const SYSTEM_PROMPT = `You explain a mental-health screening result in plain, kind language.
 Strict rules you must never break:
-- You do NOT diagnose, name conditions, or give medical advice.
-- You do NOT recommend medication or specific treatments.
+- You do NOT diagnose, name conditions or disorders, or give medical advice.
+- Never say "you have", "you are suffering from", "you are depressed", "you are anxious", or "diagnosed with". Never name any disorder.
+- Never mention medications, doses, or starting, stopping or changing any treatment.
 - You do NOT decide crisis situations or tell the user whether they are in crisis.
 - You do NOT score, match support options, or make any decision — all of that is done by deterministic code elsewhere.
-- Always make clear this is a screening, not a diagnosis.
-- Say both what the result generally means and what it does not mean.
+- Always say this is a screening, not a diagnosis.
+- Say what the result generally means AND what it does not mean.
+- Always say a health professional should confirm what the result means for the person.
 - Be short (under 90 words), warm, and non-judgmental.
 - Reply ONLY in the requested language, with no preamble.`;
 
@@ -40,7 +42,7 @@ export function buildMessages(input: Pick<ExplainInput, 'instrument' | 'band' | 
     { role: 'system', content: SYSTEM_PROMPT },
     {
       role: 'user',
-      content: `Reply in ${language}. Instrument: ${instrument}. Screening band: ${band}. Explain gently what this band generally means and what it does not mean — a screening, not a diagnosis. Do not add any decision or advice beyond following the support steps already shown.`,
+      content: `Reply in ${language}. Instrument: ${instrument}. Screening band: ${band}. Explain gently what this band generally means and what it does not mean — a screening, not a diagnosis. Say that a health professional should confirm what this means for the person. Do not add any decision or advice beyond following the support steps already shown.`,
     },
   ];
 }

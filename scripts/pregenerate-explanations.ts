@@ -1,9 +1,10 @@
 // Pre-generates every (instrument x band x language) explanation into the
 // shared cache so live requests are served without an LLM call.
 // Run: npx tsx --env-file=.env.local scripts/pregenerate-explanations.ts
-import { query } from '../src/lib/db';
+import { one, query } from '../src/lib/db';
 import { explainTemplate, type Instrument, type Language } from '../src/lib/explain';
 import { breakerRemainingMs, generateExplanation } from '../src/lib/llm/client';
+import { validateExplanation } from '../src/lib/llm/validate';
 
 const INSTRUMENTS: Instrument[] = ['PHQ9', 'GAD7'];
 const BANDS = ['minimal', 'mild', 'moderate', 'moderately_severe', 'severe', 'crisis'];
@@ -18,6 +19,17 @@ async function main() {
     for (const band of BANDS) {
       for (const language of LANGUAGES) {
         const input = { instrument, total: 0, band, language };
+        // Keep an existing LLM row only if it still passes the current guard.
+        const existing = await one<{ text: string; source: string; model: string | null }>(
+          `select text, source, model from explanation_cache
+           where instrument = $1 and band = $2 and language = $3`,
+          [instrument, band, language],
+        );
+        if (existing?.source === 'llm' && validateExplanation(existing.text, language)) {
+          console.log(`${instrument} ${band} ${language} -> kept (${existing.model})`);
+          llm++;
+          continue;
+        }
         // Respect the circuit breaker instead of burning rows as templates.
         const wait = breakerRemainingMs();
         if (wait > 0 && band !== 'crisis') {
@@ -33,8 +45,7 @@ async function main() {
            values ($1, $2, $3, $4, $5, $6)
            on conflict (instrument, band, language)
            do update set text = excluded.text, source = excluded.source,
-                         model = excluded.model, created_at = sim_now()
-           where explanation_cache.source <> 'llm' or excluded.source = 'llm'`,
+                         model = excluded.model, created_at = sim_now()`,
           [instrument, band, language, r.text, r.source, r.model ?? null],
         );
         if (r.source === 'llm') llm++;

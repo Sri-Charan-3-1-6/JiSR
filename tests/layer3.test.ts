@@ -40,7 +40,7 @@ const MODELS_PAYLOAD = {
   })),
 };
 const VALID_EN =
-  'Your answers suggest a moderate level of symptoms right now. This is a screening, not a diagnosis, so it does not label you. The support steps shown below are a good next step.';
+  'Your answers suggest a moderate level of symptoms right now. This is a screening, not a diagnosis, so it does not label you. A health professional should confirm what this means for you.';
 
 // Routes the free-model discovery call separately from chat completions.
 function chatFetch(chat: () => Promise<unknown>) {

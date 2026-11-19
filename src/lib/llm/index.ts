@@ -1,6 +1,7 @@
 import { one, query } from '../db';
 import { explainTemplate, type ExplainInput, type Explanation } from '../explain';
 import { generateExplanation } from './client';
+import { validateExplanation } from './validate';
 
 export { generateExplanation, buildMessages, resetBreaker } from './client';
 export { filterFreeModels, getFreeModels, resetModelCache } from './models';
@@ -20,7 +21,11 @@ export async function explainResult(input: ExplainInput): Promise<Explanation> {
        where instrument = $1 and band = $2 and language = $3`,
       [input.instrument, input.band, input.language],
     );
-    if (cached) return { text: cached.text, source: cached.source };
+    // Cached LLM text is re-validated on read: if the guard rules were
+    // tightened after it was stored, it is regenerated instead of served.
+    if (cached && (cached.source === 'template' || validateExplanation(cached.text, input.language))) {
+      return { text: cached.text, source: cached.source };
+    }
   } catch {
     // Cache unavailable — fall through to generation.
   }

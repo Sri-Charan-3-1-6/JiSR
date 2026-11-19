@@ -15,7 +15,7 @@ import { one, query } from '@/lib/db';
 const input: ExplainInput = { instrument: 'PHQ9', total: 12, band: 'moderate', language: 'en' };
 
 const VALID_EN =
-  'Your answers suggest a moderate level of symptoms right now. This is a screening, not a diagnosis, so it does not label you. The support steps shown below are a good next step.';
+  'Your answers suggest a moderate level of symptoms right now. This is a screening, not a diagnosis, so it does not label you. A health professional should confirm what this means for you.';
 
 const freePayload = (n: number) => ({
   data: Array.from({ length: n }, (_, i) => ({
@@ -286,8 +286,9 @@ describe('response validation', () => {
   it('rejects output missing the screening-not-diagnosis statement', () =>
     fails('Your answers suggest a moderate level of symptoms right now and the support steps shown below are a good next step for you.'));
 
-  it('accepts every fixed template in every language (they set the bar)', () => {
-    const bands = ['minimal', 'mild', 'moderate', 'moderately_severe', 'severe', 'crisis'];
+  it('accepts every fixed non-crisis template in every language (they set the bar)', () => {
+    // Crisis copy is fixed safety text and never goes through the validator.
+    const bands = ['minimal', 'mild', 'moderate', 'moderately_severe', 'severe'];
     for (const language of ['en', 'ar', 'hi'] as const) {
       for (const band of bands) {
         const text = explainTemplate({ instrument: 'GAD7', total: 10, band, language });
