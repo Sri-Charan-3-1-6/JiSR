@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { BridgeArc } from '@/components/logo';
 import { SyntheticBadge } from '@/components/header';
+import { DemoButton } from '@/components/demo/demo-button';
 
 const PORTAL_ICONS = {
   resident: 'M12 12 C14.5 12 16.5 10 16.5 7.5 C16.5 5 14.5 3 12 3 C9.5 3 7.5 5 7.5 7.5 C7.5 10 9.5 12 12 12 Z M4 21 C4 16.5 7.5 14 12 14 C16.5 14 20 16.5 20 21',
@@ -11,6 +12,7 @@ const PORTAL_ICONS = {
 
 export default async function Home() {
   const t = await getTranslations('home');
+  const tc = await getTranslations('common');
   const portals = [
     { href: '/resident', title: t('residentTitle'), desc: t('residentDesc'), icon: PORTAL_ICONS.resident },
     { href: '/navigator', title: t('navigatorTitle'), desc: t('navigatorDesc'), icon: PORTAL_ICONS.navigator },
@@ -34,6 +36,9 @@ export default async function Home() {
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <SyntheticBadge />
             <p className="text-sm text-muted">{t('note')}</p>
+          </div>
+          <div className="mt-6">
+            <DemoButton />
           </div>
         </div>
       </section>
@@ -63,6 +68,12 @@ export default async function Home() {
           </Link>
         ))}
       </div>
+
+      <p className="text-center text-sm">
+        <Link href="/about" className="font-semibold text-primary underline-offset-2 hover:underline">
+          {tc('aboutLink')}
+        </Link>
+      </p>
     </div>
   );
 }

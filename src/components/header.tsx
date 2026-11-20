@@ -8,6 +8,7 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { BridgeArc } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
+import { useDemo } from '@/components/demo/demo-provider';
 
 const PORTALS = [
   { href: '/resident', key: 'resident' },
@@ -62,6 +63,8 @@ export function SyntheticBadge() {
 
 export function Header() {
   const t = useTranslations('common');
+  const td = useTranslations('demo');
+  const demo = useDemo();
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5">
@@ -76,11 +79,13 @@ export function Header() {
           <RoleSwitcher />
           <LanguageSwitcher />
           <ThemeToggle />
-          <span className="hidden md:inline-flex">
+          <span className="hidden items-center gap-2 md:inline-flex">
+            {demo.active && <Badge tone="accent">{td('badge')}</Badge>}
             <SyntheticBadge />
           </span>
         </div>
-        <span className="md:hidden">
+        <span className="inline-flex items-center gap-2 md:hidden">
+          {demo.active && <Badge tone="accent">{td('badge')}</Badge>}
           <SyntheticBadge />
         </span>
       </div>

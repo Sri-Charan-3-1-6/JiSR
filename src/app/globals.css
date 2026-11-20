@@ -284,3 +284,8 @@ html[data-theme="dark"] .btn-danger {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Demo guide is fixed at the bottom; keep page actions scrollable above it. */
+html[data-demo] main {
+  padding-bottom: 22rem;
+}

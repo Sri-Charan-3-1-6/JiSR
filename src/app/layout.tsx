@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic, Noto_Sans_Devanagari, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -8,6 +9,8 @@ import { Header } from "@/components/header";
 import { LocaleEffects } from "@/components/locale-effects";
 import { MotionProvider } from "@/components/motion-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { DemoProvider } from "@/components/demo/demo-provider";
+import { DemoGuide } from "@/components/demo/demo-guide";
 
 const latin = Plus_Jakarta_Sans({
   variable: "--font-latin",
@@ -51,12 +54,18 @@ async function IntlShell({ children }: { children: React.ReactNode }) {
     <NextIntlClientProvider>
       <MotionProvider>
         <ToastProvider>
-          <LocaleEffects locale={locale} />
-          <Header />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:py-8">{children}</main>
-          <footer className="border-t border-border bg-card px-4 py-3 pb-20 text-center text-xs text-muted md:pb-3">
-            {t("footer")}
-          </footer>
+          <DemoProvider>
+            <LocaleEffects locale={locale} />
+            <Header />
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:py-8">{children}</main>
+            <footer className="border-t border-border bg-card px-4 py-3 pb-20 text-center text-xs text-muted md:pb-3">
+              {t("footer")}{" "}
+              <Link href="/about" className="font-semibold text-primary underline-offset-2 hover:underline">
+                {t("aboutLink")}
+              </Link>
+            </footer>
+            <DemoGuide />
+          </DemoProvider>
         </ToastProvider>
       </MotionProvider>
     </NextIntlClientProvider>

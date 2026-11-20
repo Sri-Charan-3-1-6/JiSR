@@ -163,7 +163,7 @@ export default function ResultClient({ id }: { id: string }) {
         )}
       </motion.section>
 
-      <motion.section {...stagger(4)} className="card p-6">
+      <motion.section {...stagger(4)} id="match" className="card scroll-mt-24 p-6">
         <h2 className="font-bold">{t('whyTitle')}</h2>
         <p className="mt-1 text-sm text-muted">{t(`why.${tier}`)}</p>
         <p className="mt-2 text-sm font-semibold text-primary-strong">{t(`sla.${tier}`)}</p>
