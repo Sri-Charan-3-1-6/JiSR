@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "JISR — earlier, safer mental wellbeing support",
+  "short_name": "JISR",
+  "description": "Prototype bridging a positive mental-health screen to real human follow-up. Synthetic data only.",
+  "lang": "en",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7f7",
+  "theme_color": "#0e7c74",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

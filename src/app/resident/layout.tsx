@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { BottomNav } from '@/components/ui/bottom-nav';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('resident');
+  return { title: `${t('title')} — JISR`, description: t('intro') };
+}
 
 export default async function ResidentLayout({ children }: { children: React.ReactNode }) {
   const t = await getTranslations('nav');

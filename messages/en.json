@@ -125,6 +125,7 @@
     "followup": "follow-up"
   },
   "screen": {
+    "metaDescription": "Answer the PHQ-9 or GAD-7 in your language. Deterministic scoring, a plain-language result and a matched next step. This is a screening, not a diagnosis.",
     "lastTwoWeeks": "over the last 2 weeks",
     "freeTextTitle": "Anything else you want to share? (optional)",
     "freeTextHint": "Free text is checked by fixed safety rules. You can skip this.",
@@ -164,6 +165,7 @@
     }
   },
   "result": {
+    "metaTitle": "Your screening result",
     "loading": "Loading your result…",
     "loadError": "Failed to load result",
     "scoreTitle": "{instrument} score: {score}",
@@ -360,6 +362,7 @@
     "showMore": "Show {n} more cases"
   },
   "case": {
+    "metaTitle": "Case detail — navigator console",
     "backToQueue": "← Back to queue",
     "meta": "Language: {language} · Age band: {age} · Area: {area} · Screened {date}",
     "slaBreached": "⏱ SLA BREACHED — {milestone} overdue by {duration}",

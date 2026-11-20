@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic, Noto_Sans_Devanagari, Geist_Mono } from "next/font/google";
@@ -11,6 +11,7 @@ import { MotionProvider } from "@/components/motion-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { DemoProvider } from "@/components/demo/demo-provider";
 import { DemoGuide } from "@/components/demo/demo-guide";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const latin = Plus_Jakarta_Sans({
   variable: "--font-latin",
@@ -42,6 +43,18 @@ export const metadata: Metadata = {
   title: "JISR — earlier, safer mental wellbeing support",
   description:
     "Prototype bridging a positive mental-health screen to real human follow-up. Synthetic data only.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0e7c74",
 };
 
 // Applies the saved theme before first paint; keeps the root layout static.
@@ -65,6 +78,7 @@ async function IntlShell({ children }: { children: React.ReactNode }) {
               </Link>
             </footer>
             <DemoGuide />
+            <ServiceWorkerRegister />
           </DemoProvider>
         </ToastProvider>
       </MotionProvider>
