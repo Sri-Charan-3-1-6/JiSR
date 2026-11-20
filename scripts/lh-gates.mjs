@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 
 const BASE = process.env.LH_BASE_URL;
+const PREFIX = process.env.LH_PREFIX || 'layer5-preview';
 const CHROME = '/c/Program Files/Google/Chrome/Application/chrome.exe';
 const routes = [
   ['home', '/'],
@@ -18,7 +19,7 @@ for (const [name, path] of routes) {
   const a11y = [];
   const files = [];
   for (let i = 1; i <= 3; i++) {
-    const out = `docs/lighthouse/layer5-preview-${name}-mobile-run${i}.json`;
+    const out = `docs/lighthouse/${PREFIX}-${name}-mobile-run${i}.json`;
     const r = spawnSync('npx', [
       '--yes', 'lighthouse@12', `${BASE}${path}`,
       '--output=json', `--output-path=${out}`,
@@ -39,11 +40,11 @@ for (const [name, path] of routes) {
   const mp = median(perf);
   const ma = median(a11y);
   const medIdx = perf.indexOf(mp);
-  copyFileSync(files[medIdx], `docs/lighthouse/layer5-preview-${name}-mobile.json`);
+  copyFileSync(files[medIdx], `docs/lighthouse/${PREFIX}-${name}-mobile.json`);
   summary[name] = { perfRuns: perf, a11yRuns: a11y, perfMedian: mp, a11yMedian: ma, pass: mp >= 85 && ma >= 95 };
 }
 
-writeFileSync('docs/lighthouse/layer5-preview-summary.json', JSON.stringify(summary, null, 2) + '\n');
+writeFileSync(`docs/lighthouse/${PREFIX}-summary.json`, JSON.stringify(summary, null, 2) + '\n');
 console.log('\n=== MEDIAN GATES (perf>=85, a11y>=95) ===');
 for (const [name, s] of Object.entries(summary)) {
   console.log(`${name.padEnd(14)} perf ${s.perfMedian} (runs ${s.perfRuns}) a11y ${s.a11yMedian} (runs ${s.a11yRuns}) ${s.pass ? 'PASS' : 'FAIL'}`);
