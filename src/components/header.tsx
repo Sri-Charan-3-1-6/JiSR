@@ -63,7 +63,7 @@ export function SyntheticBadge() {
 export function Header() {
   const t = useTranslations('common');
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-card">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label="JISR">
           <BridgeArc size={30} />

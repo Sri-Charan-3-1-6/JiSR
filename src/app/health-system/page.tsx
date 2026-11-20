@@ -2,18 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { motion, useReducedMotion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Stat, CountUp } from '@/components/ui/stat';
 import { SkeletonCard } from '@/components/ui/skeleton';
-import type { CompareRow } from '@/components/charts';
-
-const CompareChart = dynamic(() => import('@/components/charts').then((m) => m.CompareChart), {
-  ssr: false,
-  loading: () => <div className="skeleton h-56 w-full" />,
-});
+import { Tabs } from '@/components/ui/tabs';
+import { CompareChart, type CompareRow } from '@/components/charts';
 
 interface Metrics {
   cases_total: string;
@@ -73,7 +67,6 @@ function AnimatedPct({ value, active }: { value: number; active?: boolean }) {
 
 export default function HealthSystemPage() {
   const t = useTranslations('health');
-  const reduce = useReducedMotion();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [improvement, setImprovement] = useState<Improvement | null>(null);
   const [fairness, setFairness] = useState<FairnessRow[]>([]);
@@ -83,6 +76,32 @@ export default function HealthSystemPage() {
   const [error, setError] = useState<string | null>(null);
   const [langOutreach, setLangOutreach] = useState(false);
   const [flexSlots, setFlexSlots] = useState(false);
+  const [dim, setDim] = useState('language');
+  const [simReady, setSimReady] = useState(false);
+  const [wide, setWide] = useState(false);
+  const [moreMetrics, setMoreMetrics] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  // Mount the below-fold what-if panel two frames after the first data paint so
+  // its render work cannot delay the hero's first paint (LCP).
+  useEffect(() => {
+    if (loading) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setSimReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [loading]);
 
   useEffect(() => {
     fetch('/api/gapfinder')
@@ -108,6 +127,7 @@ export default function HealthSystemPage() {
       .map((dim) => ({ dim, rows: fairness.filter((r) => r.dimension === dim) }))
       .filter((d) => d.rows.length > 0);
   }, [fairness]);
+  const activeDim = dimensions.find((d) => d.dim === dim) ?? dimensions[0];
 
   // Deterministic what-if simulation on the language dimension.
   // Intervention A: language-matched outreach closes 60% of each group's
@@ -166,7 +186,10 @@ export default function HealthSystemPage() {
     <div className="space-y-6">
       <section className="card p-6" style={{ background: 'var(--gradient-soft), var(--card)' }}>
         <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 text-sm text-muted">{t('intro', { n: residentsTotal ?? '—' })}</p>
+        <p className="mt-2 text-sm text-muted">
+          {/* Figure-space placeholder keeps the box width stable so LCP paints with the shell, not after the fetch. */}
+          {t('intro', { n: residentsTotal ?? '     ' })}
+        </p>
         <Link href="/employer" className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline">
           {t('employerLink')}
         </Link>
@@ -187,25 +210,31 @@ export default function HealthSystemPage() {
           format={pctFmt}
           hint={t('matchToBookedHint')}
         />
-        <Stat
-          label={t('bookedToAttended')}
-          value={pct(metrics.booked_to_attended_rate)}
-          numericValue={num(metrics.booked_to_attended_rate) === null ? undefined : Number(metrics.booked_to_attended_rate) * 100}
-          format={pctFmt}
-        />
-        <Stat
-          label={t('medianFollowup')}
-          value={days(metrics.median_days_to_followup)}
-          numericValue={num(metrics.median_days_to_followup) ?? undefined}
-          format={daysFmt}
-        />
-        <Stat
-          label={t('medianWait')}
-          value={days(metrics.median_waiting_days)}
-          numericValue={num(metrics.median_waiting_days) ?? undefined}
-          format={daysFmt}
-          hint={t('medianWaitHint')}
-        />
+        {(wide || moreMetrics) && (
+          <Stat
+            label={t('bookedToAttended')}
+            value={pct(metrics.booked_to_attended_rate)}
+            numericValue={num(metrics.booked_to_attended_rate) === null ? undefined : Number(metrics.booked_to_attended_rate) * 100}
+            format={pctFmt}
+          />
+        )}
+        {(wide || moreMetrics) && (
+          <Stat
+            label={t('medianFollowup')}
+            value={days(metrics.median_days_to_followup)}
+            numericValue={num(metrics.median_days_to_followup) ?? undefined}
+            format={daysFmt}
+          />
+        )}
+        {(wide || moreMetrics) && (
+          <Stat
+            label={t('medianWait')}
+            value={days(metrics.median_waiting_days)}
+            numericValue={num(metrics.median_waiting_days) ?? undefined}
+            format={daysFmt}
+            hint={t('medianWaitHint')}
+          />
+        )}
         <Stat
           label={t('crisisCompletion')}
           value={pct(metrics.crisis_response_completion)}
@@ -220,47 +249,61 @@ export default function HealthSystemPage() {
           hint={t('adverseHint')}
           alert={Number(metrics.adverse_missed_crisis_callbacks) > 0}
         />
-        <Stat
-          label={t('improved')}
-          value={pct(improvement?.improvement_rate)}
-          numericValue={num(improvement?.improvement_rate) === null ? undefined : Number(improvement?.improvement_rate) * 100}
-          format={pctFmt}
-          hint={
-            improvement
-              ? t('improvedHint', {
-                  improved: improvement.improved,
-                  paired: improvement.paired_residents,
-                  reduction: improvement.avg_score_reduction ?? '—',
-                })
-              : undefined
-          }
-        />
+        {(wide || moreMetrics) && (
+          <Stat
+            label={t('improved')}
+            value={pct(improvement?.improvement_rate)}
+            numericValue={num(improvement?.improvement_rate) === null ? undefined : Number(improvement?.improvement_rate) * 100}
+            format={pctFmt}
+            hint={
+              improvement
+                ? t('improvedHint', {
+                    improved: improvement.improved,
+                    paired: improvement.paired_residents,
+                    reduction: improvement.avg_score_reduction ?? '—',
+                  })
+                : undefined
+            }
+          />
+        )}
       </section>
+      <button
+        type="button"
+        onClick={() => setMoreMetrics((v) => !v)}
+        aria-expanded={moreMetrics}
+        className="btn btn-outline w-full md:hidden"
+      >
+        {moreMetrics ? t('showFewerMetrics') : t('showMoreMetrics')}
+      </button>
 
       <section className="card p-6">
         <h2 className="font-bold">{t('fairnessTitle')}</h2>
         <p className="mt-1 text-sm text-muted">{t('fairnessNote')}</p>
-        <div className="mt-4 space-y-6">
-          {dimensions.map(({ dim, rows }) => (
-            <div key={dim}>
-              <h3 className="text-sm font-bold uppercase tracking-wide text-muted">
-                {t(`dimensions.${dim}`)}
-              </h3>
-              <div className="mt-2 overflow-x-auto">
-                <table className="w-full min-w-[640px] text-sm">
+        <div className="mt-4">
+          <div className="overflow-x-auto">
+            <Tabs
+              tabs={dimensions.map((d) => ({ value: d.dim, label: t(`dimensions.${d.dim}`) }))}
+              active={activeDim?.dim ?? 'language'}
+              onChange={setDim}
+              ariaLabel={t('fairnessTitle')}
+            />
+          </div>
+          {activeDim && (
+            <div className="mt-3 overflow-x-auto">
+                <table className="w-full min-w-[480px] text-sm md:min-w-[640px]">
                   <thead>
                     <tr className="border-b border-border text-start text-xs text-muted">
                       <th className="py-2 pe-3 text-start">{t('group')}</th>
                       <th className="py-2 pe-3 text-start">{t('n')}</th>
                       <th className="py-2 pe-3 text-start">{t('screenToMatch')}</th>
-                      <th className="py-2 pe-3 text-start">{t('matchToBooked')}</th>
-                      <th className="py-2 pe-3 text-start">{t('bookedToAttended')}</th>
-                      <th className="py-2 pe-3 text-start">{t('medianWait')}</th>
+                      {wide && <th className="py-2 pe-3 text-start">{t('matchToBooked')}</th>}
+                      {wide && <th className="py-2 pe-3 text-start">{t('bookedToAttended')}</th>}
+                      {wide && <th className="py-2 pe-3 text-start">{t('medianWait')}</th>}
                       <th className="py-2 text-start">{t('gapFlag')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((r, i) => (
+                    {activeDim.rows.map((r, i) => (
                       <tr
                         key={r.group_value}
                         className={`border-b border-border/60 transition-colors duration-150 hover:bg-surface-2/60 ${
@@ -282,17 +325,15 @@ export default function HealthSystemPage() {
                             ({t('best', { value: pct(r.best_screen_to_match) })})
                           </span>
                           <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-pill bg-surface-2">
-                            <motion.div
-                              className={`h-full w-full origin-left rounded-pill rtl:origin-right ${r.is_gap ? 'bg-danger/70' : 'bg-primary'}`}
-                              initial={reduce ? false : { scaleX: 0 }}
-                              animate={{ scaleX: Number(r.screen_to_match) }}
-                              transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                            <div
+                              className={`bar-grow h-full w-full origin-left rounded-pill rtl:origin-right ${r.is_gap ? 'bg-danger/70' : 'bg-primary'}`}
+                              style={{ transform: `scaleX(${Number(r.screen_to_match)})`, animationDelay: `${Math.min(i, 10) * 50}ms` }}
                             />
                           </div>
                         </td>
-                        <td className="py-2.5 pe-3 tabular-nums">{pct(r.match_to_booked_sla)}</td>
-                        <td className="py-2.5 pe-3 tabular-nums">{pct(r.booked_to_attended)}</td>
-                        <td className="py-2.5 pe-3 tabular-nums">{days(r.median_waiting_days)}</td>
+                        {wide && <td className="py-2.5 pe-3 tabular-nums">{pct(r.match_to_booked_sla)}</td>}
+                        {wide && <td className="py-2.5 pe-3 tabular-nums">{pct(r.booked_to_attended)}</td>}
+                        {wide && <td className="py-2.5 pe-3 tabular-nums">{days(r.median_waiting_days)}</td>}
                         <td className="py-2.5">
                           <span className="flex flex-wrap gap-1">
                             {r.is_gap && <Badge tone="danger">{t('gapMatch')}</Badge>}
@@ -305,23 +346,22 @@ export default function HealthSystemPage() {
                       </tr>
                     ))}
                     {suppressed
-                      .filter((s) => s.dimension === dim)
+                      .filter((s) => s.dimension === activeDim.dim)
                       .map((s) => (
                         <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
                           <td className="py-2.5 pe-3 font-semibold">{s.group_value}</td>
                           <td className="py-2.5 pe-3" title={t('suppressedTitle')}><span dir="ltr">&lt;10</span></td>
                           <td className="py-2.5 pe-3">—</td>
-                          <td className="py-2.5 pe-3">—</td>
-                          <td className="py-2.5 pe-3">—</td>
-                          <td className="py-2.5 pe-3">—</td>
+                          {wide && <td className="py-2.5 pe-3">—</td>}
+                          {wide && <td className="py-2.5 pe-3">—</td>}
+                          {wide && <td className="py-2.5 pe-3">—</td>}
                           <td className="py-2.5 text-xs">{t('hiddenPrivacy')}</td>
                         </tr>
                       ))}
                   </tbody>
                 </table>
-              </div>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
@@ -357,7 +397,7 @@ export default function HealthSystemPage() {
             </span>
           </label>
         </div>
-        {simulation && (
+        {simulation && simReady && (
           <div className="mt-5">
             <CompareChart
               rows={chartRows}

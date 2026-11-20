@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { motion, useReducedMotion } from 'motion/react';
 import { CountUp, Stat } from '@/components/ui/stat';
 import { Modal } from '@/components/ui/modal';
 import { SkeletonCard } from '@/components/ui/skeleton';
@@ -28,7 +27,6 @@ function CountTable({ title, labels, rows }: {
   rows: GroupCount[];
 }) {
   const t = useTranslations('employer');
-  const reduce = useReducedMotion();
   const byValue = new Map(rows.map((r) => [r.group_value, r.resident_count]));
   const max = Math.max(1, ...rows.map((r) => Number(r.resident_count)));
   return (
@@ -50,11 +48,9 @@ function CountTable({ title, labels, rows }: {
                   {l.label}
                   {count !== undefined && (
                     <div className="mt-1 h-1 w-full overflow-hidden rounded-pill bg-surface-2">
-                      <motion.div
-                        className="h-full w-full origin-left rounded-pill bg-primary/70 rtl:origin-right"
-                        initial={reduce ? false : { scaleX: 0 }}
-                        animate={{ scaleX: Number(count) / max }}
-                        transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                      <div
+                        className="bar-grow h-full w-full origin-left rounded-pill bg-primary/70 rtl:origin-right"
+                        style={{ transform: `scaleX(${Number(count) / max})`, animationDelay: `${i * 50}ms` }}
                       />
                     </div>
                   )}

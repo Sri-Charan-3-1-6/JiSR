@@ -1,21 +1,10 @@
-'use client';
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-
 export interface CompareRow {
   group: string;
   current: number;
   simulated: number;
 }
+
+const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
 export function CompareChart({
   rows,
@@ -27,34 +16,45 @@ export function CompareChart({
   simulatedLabel: string;
 }) {
   return (
-    <div className="h-56 w-full" dir="ltr">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -18 }} barGap={4}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="group" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
-          <YAxis
-            tick={{ fill: 'var(--muted)', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(v: number) => `${Math.round(v * 100)}%`}
-            domain={[0, 1]}
-          />
-          <Tooltip
-            formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`}
-            contentStyle={{
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              color: 'var(--foreground)',
-              fontSize: 13,
-            }}
-            cursor={{ fill: 'var(--surface-2)' }}
-          />
-          <Legend wrapperStyle={{ fontSize: 12, color: 'var(--muted)' }} />
-          <Bar dataKey="current" name={currentLabel} fill="var(--muted)" radius={[6, 6, 0, 0]} animationDuration={400} />
-          <Bar dataKey="simulated" name={simulatedLabel} fill="var(--primary)" radius={[6, 6, 0, 0]} animationDuration={400} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="w-full" dir="ltr">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-pill bg-muted" aria-hidden="true" />
+          {currentLabel}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-pill bg-primary" aria-hidden="true" />
+          {simulatedLabel}
+        </span>
+      </div>
+      <div className="mt-3 space-y-3">
+        {rows.map((r, i) => (
+          <div key={r.group}>
+            <div className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="font-semibold text-foreground">{r.group}</span>
+              <span className="tabular-nums text-muted">
+                {pct(r.current)} → {pct(r.simulated)}
+              </span>
+            </div>
+            <div className="mt-1 space-y-1">
+              <div className="h-2.5 w-full overflow-hidden rounded-pill bg-surface-2">
+                <div
+                  className="bar-grow h-full w-full origin-left rounded-pill bg-muted"
+                  style={{ transform: `scaleX(${r.current})`, animationDelay: `${i * 60}ms` }}
+                  title={`${currentLabel}: ${pct(r.current)}`}
+                />
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-pill bg-surface-2">
+                <div
+                  className="bar-grow h-full w-full origin-left rounded-pill bg-primary"
+                  style={{ transform: `scaleX(${r.simulated})`, animationDelay: `${i * 60 + 80}ms` }}
+                  title={`${simulatedLabel}: ${pct(r.simulated)}`}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

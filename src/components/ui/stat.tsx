@@ -41,7 +41,11 @@ export function CountUp({
   }, [value, reduce]);
 
   return (
-    <span ref={ref} className={`tabular-nums ${className}`}>
+    <span
+      ref={ref}
+      className={`tabular-nums inline-block count-up ${className}`}
+      style={{ minWidth: `${fmt(value).length}ch` }}
+    >
       {fmt(value)}
     </span>
   );

@@ -290,7 +290,8 @@
     "overdueBadge": "⏱ OVERDUE {duration} — {milestone}",
     "dueLine": "{milestone} due {date}",
     "noSla": "No pending SLA",
-    "openCase": "Open case"
+    "openCase": "Open case",
+    "showMore": "Show {n} more cases"
   },
   "case": {
     "backToQueue": "← Back to queue",
@@ -325,6 +326,8 @@
     "title": "Gap Finder — Health-System dashboard",
     "intro": "Where do people fall out of the pathway from screening to follow-up? Seeded synthetic dataset of {n} residents with deliberately injected gaps. All metrics come from SQL views; groups smaller than 10 are suppressed inside the views.",
     "employerLink": "See the employer-safe view (aggregates only)",
+    "showMoreMetrics": "More metrics",
+    "showFewerMetrics": "Fewer metrics",
     "screenToMatch": "Screen → match",
     "screenToMatchHint": "{matched} of {total} cases matched",
     "matchToBooked": "Match → booked in SLA",

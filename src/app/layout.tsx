@@ -12,22 +12,27 @@ import { ToastProvider } from "@/components/ui/toast";
 const latin = Plus_Jakarta_Sans({
   variable: "--font-latin",
   subsets: ["latin"],
+  // optional: never swap-repaint after first paint, so LCP cannot jitter with font arrival
+  display: "optional",
 });
 
 const arabic = IBM_Plex_Sans_Arabic({
   variable: "--font-arabic",
   subsets: ["arabic"],
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const devanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
   subsets: ["devanagari"],
+  preload: false,
 });
 
 const mono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {

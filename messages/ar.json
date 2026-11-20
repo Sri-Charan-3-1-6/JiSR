@@ -290,7 +290,8 @@
     "overdueBadge": "⏱ متأخرة {duration} — {milestone}",
     "dueLine": "{milestone} مستحق {date}",
     "noSla": "لا موعد SLA معلّق",
-    "openCase": "فتح الحالة"
+    "openCase": "فتح الحالة",
+    "showMore": "عرض {n} حالة أخرى"
   },
   "case": {
     "backToQueue": "← العودة إلى القائمة",
@@ -325,6 +326,8 @@
     "title": "كاشف الفجوات — لوحة النظام الصحي",
     "intro": "أين يخرج الناس من مسار الفحص إلى المتابعة؟ مجموعة بيانات اصطناعية مزروعة لـ {n} مقيمًا مع فجوات مقصودة. جميع المقاييس من عروض SQL؛ المجموعات الأصغر من ١٠ تُحجب داخل العروض.",
     "employerLink": "عرض جهة العمل الآمن (إجماليات فقط)",
+    "showMoreMetrics": "مزيد من المقاييس",
+    "showFewerMetrics": "مقاييس أقل",
     "screenToMatch": "فحص ← مطابقة",
     "screenToMatchHint": "{matched} من {total} حالة تمت مطابقتها",
     "matchToBooked": "مطابقة ← حجز ضمن SLA",

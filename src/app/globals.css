@@ -223,27 +223,8 @@ html[data-theme="dark"] .btn-danger {
 
 /* Skeleton shimmer (transform-only) -------------------------------------- */
 .skeleton {
-  position: relative;
-  overflow: hidden;
   background: var(--surface-2);
   border-radius: var(--r-sm);
-}
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--card) 65%, transparent), transparent);
-  animation: shimmer 1.4s infinite;
-}
-html[dir="rtl"] .skeleton::after {
-  animation-name: shimmer-rtl;
-}
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
-@keyframes shimmer-rtl {
-  100% { transform: translateX(-100%); }
 }
 
 /* Calm crisis breathing + soft overdue pulse (both far below 3 Hz) -------- */
@@ -265,6 +246,31 @@ html[dir="rtl"] .skeleton::after {
 /* Score ring fill (single SVG stroke, 400ms) ------------------------------ */
 .ring-fill {
   transition: stroke-dashoffset var(--dur-slow) var(--ease-smooth);
+}
+
+/* Route + card entrances: CSS-only so first paint never waits for JS ------ */
+.route-fade {
+  animation: route-fade var(--dur) var(--ease-smooth);
+}
+@keyframes route-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.card-enter {
+  animation: card-enter var(--dur-slow) var(--ease-smooth) backwards;
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.bar-grow {
+  animation: bar-grow var(--dur-slow) var(--ease-smooth) backwards;
+}
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+.count-up {
+  contain: layout;
 }
 }
 

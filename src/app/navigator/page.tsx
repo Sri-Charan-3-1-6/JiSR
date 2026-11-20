@@ -34,6 +34,7 @@ export default function NavigatorConsole() {
   const [cases, setCases] = useState<QueueCase[]>([]);
   const [clock, setClock] = useState<Clock | null>(null);
   const [tab, setTab] = useState<'all' | 'overdue'>('all');
+  const [visible, setVisible] = useState(40);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [traveling, setTraveling] = useState(false);
@@ -82,7 +83,9 @@ export default function NavigatorConsole() {
             <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
             <p className="mt-1 text-sm text-muted">
               {t('subtitle')}{' '}
-              <strong className="tabular-nums text-foreground">{clock ? fmtDateTime(clock.now) : '…'}</strong>
+              <strong className="tabular-nums text-foreground">
+                {clock ? fmtDateTime(clock.now) : <span className="skeleton inline-block h-[1em] w-[18ch] align-middle" aria-hidden="true" />}
+              </strong>
               {clock && clock.offset !== '00:00:00' && (
                 <span className="ms-1 font-semibold text-warning">{t('offset', { offset: clock.offset })}</span>
               )}
@@ -109,10 +112,9 @@ export default function NavigatorConsole() {
       </section>
 
       <Tabs
-        layoutId="navigator-tabs"
         ariaLabel={t('title')}
         active={tab}
-        onChange={setTab}
+        onChange={(v) => { setTab(v); setVisible(40); }}
         tabs={[
           { value: 'all', label: t('allCases', { n: cases.length }) },
           { value: 'overdue', label: t('overdue', { n: overdueCount }), danger: true },
@@ -130,49 +132,60 @@ export default function NavigatorConsole() {
       ) : shown.length === 0 ? (
         <EmptyState title={tab === 'overdue' ? t('emptyOverdue') : t('emptyAll')} />
       ) : (
-        <ul className="space-y-3">
-          <AnimatePresence initial={false}>
-            {shown.map((c) => (
-              <motion.li
-                key={c.id}
-                layout={reduce ? false : 'position'}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className={`card card-hover p-4 ${c.is_overdue ? 'border-danger/50' : ''}`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <RiskBadge tier={c.risk_tier} />
-                    <StateBadge state={c.state} />
-                    <span className="font-mono text-sm font-semibold">{c.pseudo_id}</span>
-                    {c.instrument && (
-                      <span className="text-xs text-muted">{c.instrument} · {c.total_score}</span>
+        <>
+          <ul className="space-y-3">
+            <AnimatePresence initial={false}>
+              {shown.slice(0, visible).map((c) => (
+                <motion.li
+                  key={c.id}
+                  layout={reduce ? false : 'position'}
+                  initial={reduce ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className={`card card-hover p-4 ${c.is_overdue ? 'border-danger/50' : ''}`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <RiskBadge tier={c.risk_tier} />
+                      <StateBadge state={c.state} />
+                      <span className="font-mono text-sm font-semibold">{c.pseudo_id}</span>
+                      {c.instrument && (
+                        <span className="text-xs text-muted">{c.instrument} · {c.total_score}</span>
+                      )}
+                    </div>
+                    {c.is_overdue ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-pill bg-danger px-3 py-1.5 text-xs font-bold text-white dark:text-[#2a0d0b]">
+                        <span className="soft-pulse h-1.5 w-1.5 rounded-pill bg-current" aria-hidden="true" />
+                        {t('overdueBadge', { duration: fmtDuration(intervalToMs(c.overdue_by)), milestone: milestone(c.next_milestone) })}
+                      </span>
+                    ) : c.next_due ? (
+                      <span className="text-xs text-muted">
+                        {t('dueLine', { milestone: milestone(c.next_milestone), date: fmtDateTime(c.next_due) })}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-success">{t('noSla')}</span>
                     )}
                   </div>
-                  {c.is_overdue ? (
-                    <span className="soft-pulse inline-flex items-center gap-1 rounded-pill bg-danger px-3 py-1.5 text-xs font-bold text-white dark:text-[#2a0d0b]">
-                      {t('overdueBadge', { duration: fmtDuration(intervalToMs(c.overdue_by)), milestone: milestone(c.next_milestone) })}
-                    </span>
-                  ) : c.next_due ? (
-                    <span className="text-xs text-muted">
-                      {t('dueLine', { milestone: milestone(c.next_milestone), date: fmtDateTime(c.next_due) })}
-                    </span>
-                  ) : (
-                    <span className="text-xs font-semibold text-success">{t('noSla')}</span>
-                  )}
-                </div>
-                <Link
-                  href={`/navigator/case/${c.id}`}
-                  className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
-                >
-                  {t('openCase')}
-                </Link>
-              </motion.li>
-            ))}
-          </AnimatePresence>
-        </ul>
+                  <Link
+                    href={`/navigator/case/${c.id}`}
+                    className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    {t('openCase')}
+                  </Link>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ul>
+          {shown.length > visible && (
+            <button
+              onClick={() => setVisible(visible + 40)}
+              className="btn btn-outline w-full"
+            >
+              {t('showMore', { n: shown.length - visible })}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

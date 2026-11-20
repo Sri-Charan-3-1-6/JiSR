@@ -153,7 +153,8 @@ export default function CaseClient({ id }: { id: string }) {
           })}
         </p>
         {sla?.is_overdue && (
-          <p className="soft-pulse mt-3 rounded-btn bg-danger px-4 py-2.5 text-sm font-bold text-white dark:text-[#2a0d0b]">
+          <p className="mt-3 flex items-center gap-2 rounded-btn bg-danger px-4 py-2.5 text-sm font-bold text-white dark:text-[#2a0d0b]">
+            <span className="soft-pulse h-1.5 w-1.5 shrink-0 rounded-pill bg-current" aria-hidden="true" />
             {t('slaBreached', { milestone: milestone(sla.next_milestone), duration: fmtDuration(intervalToMs(sla.overdue_by)) })}
           </p>
         )}
