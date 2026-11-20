@@ -49,7 +49,7 @@ test('installable PWA: manifest, icons, service worker, offline app shell and de
   // The seeded demo story runs fully offline.
   await page.getByRole('button', { name: 'Demo mode', exact: true }).click();
   const guide = page.getByRole('region', { name: 'Demo guide' });
-  await expect(guide.getByText('Step 1 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 1 of 8')).toBeVisible();
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('PHQ-9 score: 10')).toBeVisible();
   await expect(page.getByText('moderate level of symptoms')).toBeVisible();

@@ -4,12 +4,15 @@ import { detectCrisis } from '@/lib/crisis';
 import {
   DEMO_ANSWERS,
   DEMO_CASE_ID,
+  DEMO_CONTACT_ID,
   DEMO_RESIDENT_ID,
   DEMO_STEPS,
+  DEMO_TASK_ID,
   DEMO_MISSED_DAY,
   createDemoStore,
   handleDemoRequest,
 } from '@/lib/demo/story';
+import { containsHealthData } from '@/lib/trusted-contact';
 
 const get = (path: string, store = createDemoStore()) =>
   handleDemoRequest(path, { method: 'GET' }, store);
@@ -25,8 +28,8 @@ describe('demo story fixtures', () => {
     expect(detectCrisis('PHQ9', DEMO_ANSWERS, null).crisis).toBe(false);
   });
 
-  it('has exactly 6 guided steps with the story routes', () => {
-    expect(DEMO_STEPS).toHaveLength(6);
+  it('has exactly 8 guided steps with the story routes', () => {
+    expect(DEMO_STEPS).toHaveLength(8);
     expect(DEMO_STEPS.map((s) => s.route)).toEqual([
       '/resident/screen/PHQ9',
       `/resident/result/${DEMO_CASE_ID}`,
@@ -34,9 +37,12 @@ describe('demo story fixtures', () => {
       '/navigator',
       `/navigator/case/${DEMO_CASE_ID}`,
       '/health-system',
+      '/resident/checkin',
+      '/resident/trusted-contact',
     ]);
     expect(DEMO_STEPS[2].scrollTo).toBe('match');
     expect(DEMO_STEPS[3].day).toBe(DEMO_MISSED_DAY);
+    expect(DEMO_STEPS[6].day).toBe(DEMO_MISSED_DAY);
     expect(DEMO_MISSED_DAY).toBeGreaterThan(7);
   });
 
@@ -199,8 +205,10 @@ describe('demo API: consent and off-story routes', () => {
       scopes: Array<{ scope: string; granted: boolean }>;
       audit: unknown[];
     };
-    expect(body.scopes.length).toBe(5);
+    expect(body.scopes.length).toBe(7);
     expect(body.scopes.every((s) => s.granted)).toBe(true);
+    expect(body.scopes.map((s) => s.scope)).toContain('reminders');
+    expect(body.scopes.map((s) => s.scope)).toContain('trusted_contact');
     const auditBefore = body.audit.length;
     post(`/api/residents/${DEMO_RESIDENT_ID}/consent`, { scope: 'wearable_signal', granted: false }, store);
     const after = get(`/api/residents/${DEMO_RESIDENT_ID}/consent`, store).body as typeof body;
@@ -219,5 +227,144 @@ describe('demo API: consent and off-story routes', () => {
     const res = get('/api/employer/aggregate');
     expect(res.status).toBe(503);
     expect((res.body as { error: string }).error).toBeTruthy();
+  });
+});
+
+const put = (path: string, body: unknown, store = createDemoStore()) =>
+  handleDemoRequest(path, { method: 'PUT', body: JSON.stringify(body) }, store);
+const R = DEMO_RESIDENT_ID;
+const EVAL = `/api/residents/${R}/checkins/evaluate`;
+
+describe('demo API: Layer 5 reminder ladder', () => {
+  it('sends a reminder for the open check-in and stops the exhausted missed one', () => {
+    const store = createDemoStore();
+    store.day = DEMO_MISSED_DAY;
+    store.prefs.quietStart = '00:00';
+    store.prefs.quietEnd = '00:00'; // start === end disables quiet hours, TZ-independent
+    const body = post(EVAL, {}, store).body as { events: Array<{ kind: string }> };
+    expect(body.events.some((e) => e.kind === 'reminder')).toBe(true);
+    expect(body.events.some((e) => e.kind === 'stopped')).toBe(true);
+    const missed = store.checkins.find((c) => c.id === 'demo-checkin-missed');
+    expect(missed?.state).toBe('stopped');
+  });
+
+  it('respects quiet hours: no reminder is sent during the quiet window', () => {
+    const store = createDemoStore();
+    store.day = DEMO_MISSED_DAY;
+    store.prefs.quietStart = '00:00';
+    store.prefs.quietEnd = '23:59';
+    const body = post(EVAL, {}, store).body as { events: Array<{ kind: string }> };
+    expect(body.events.some((e) => e.kind === 'reminder')).toBe(false);
+    expect(body.events.some((e) => e.kind === 'skipped_quiet_hours')).toBe(true);
+  });
+
+  it('respects the daily cap: a zero cap skips sends without a reminder', () => {
+    const store = createDemoStore();
+    store.day = DEMO_MISSED_DAY;
+    store.prefs.quietStart = '00:00';
+    store.prefs.quietEnd = '00:00';
+    store.prefs.maxPerDay = 0;
+    const body = post(EVAL, {}, store).body as { events: Array<{ kind: string }> };
+    expect(body.events.some((e) => e.kind === 'reminder')).toBe(false);
+    expect(body.events.some((e) => e.kind === 'skipped_daily_cap')).toBe(true);
+  });
+
+  it('completing and snoozing a check-in records the matching event', () => {
+    const store = createDemoStore();
+    store.day = DEMO_MISSED_DAY;
+    const done = post('/api/checkins/demo-checkin-pending/complete', {}, store);
+    expect(done.status).toBe(200);
+    expect(store.checkins.find((c) => c.id === 'demo-checkin-pending')?.state).toBe('completed');
+    const snoozed = post('/api/checkins/demo-checkin-missed/snooze', {}, store);
+    expect(snoozed.status).toBe(400); // a missed check-in cannot be snoozed
+    expect(store.reminderEvents.some((e) => e.kind === 'completed')).toBe(true);
+  });
+});
+
+describe('demo API: Layer 5 trusted contact guards', () => {
+  it('exposes the seeded contact and an eligible failed-call task', () => {
+    const body = get(`/api/residents/${R}/trusted-contact`).body as {
+      contact: { contact_label: string } | null;
+      consent: boolean;
+      eligibleTask: { id: string } | null;
+    };
+    expect(body.consent).toBe(true);
+    expect(body.contact?.contact_label).toBe('Sister');
+    expect(body.eligibleTask?.id).toBe(DEMO_TASK_ID);
+  });
+
+  it('refuses to send without trusted_contact consent', () => {
+    const store = createDemoStore();
+    store.consent.trusted_contact = false;
+    const res = post(`/api/trusted-contact/${DEMO_CONTACT_ID}/send`, {}, store);
+    expect(res.status).toBe(403);
+    expect(store.contactEvents).toHaveLength(0);
+  });
+
+  it('sends only the generic message with no health data, then blocks a duplicate', () => {
+    const store = createDemoStore();
+    const res = post(`/api/trusted-contact/${DEMO_CONTACT_ID}/send`, {}, store);
+    expect(res.status).toBe(200);
+    const body = res.body as { message: string; waLink: string; simulated: boolean };
+    expect(body.message).toBe("JISR-DEMO-099 asked us to let you know they'd appreciate a call.");
+    expect(containsHealthData(body.message)).toBe(false);
+    expect(body.simulated).toBe(true);
+    expect(body.waLink.startsWith('https://wa.me/971500000000')).toBe(true);
+    expect(post(`/api/trusted-contact/${DEMO_CONTACT_ID}/send`, {}, store).status).toBe(409);
+  });
+
+  it('records a reply only as contact made and resolves the task', () => {
+    const store = createDemoStore();
+    post(`/api/trusted-contact/${DEMO_CONTACT_ID}/send`, {}, store);
+    const res = post(`/api/trusted-contact/${DEMO_CONTACT_ID}/reply`, {}, store);
+    expect(res.status).toBe(200);
+    expect((res.body as { kind: string }).kind).toBe('contact_made');
+    expect(store.tasks.find((t) => t.id === DEMO_TASK_ID)?.resolved_at).toBeTruthy();
+    const after = get(`/api/residents/${R}/trusted-contact`, store).body as { eligibleTask: unknown };
+    expect(after.eligibleTask).toBeNull();
+  });
+});
+
+describe('demo API: Layer 5 consent revocation and aggregates', () => {
+  it('revoking reminders immediately empties the notification center and blocks evaluate', () => {
+    const store = createDemoStore();
+    post(`/api/residents/${R}/consent`, { scope: 'reminders', granted: false }, store);
+    const feed = get(`/api/residents/${R}/notifications`, store).body as {
+      events: unknown[];
+      unread: number;
+      consentRequired: boolean;
+    };
+    expect(feed.events).toEqual([]);
+    expect(feed.unread).toBe(0);
+    expect(feed.consentRequired).toBe(true);
+    expect(post(EVAL, {}, store).status).toBe(403);
+  });
+
+  it('Gap Finder carries a check-in block with a Hindi completion gap and suppression', () => {
+    const body = get('/api/gapfinder').body as {
+      checkin: {
+        metrics: { completion_rate: string };
+        fairness: Array<{ dimension: string; group_value: string; n: string; is_gap: boolean }>;
+        suppressed: unknown[];
+        companion: { heavy_share: string };
+      };
+    };
+    const lang = body.checkin.fairness.filter((r) => r.dimension === 'language');
+    expect(lang.find((r) => r.group_value === 'hi')?.is_gap).toBe(true);
+    expect(lang.find((r) => r.group_value === 'en')?.is_gap).toBe(false);
+    expect(body.checkin.fairness.every((r) => Number(r.n) >= 10)).toBe(true);
+    expect(body.checkin.suppressed.length).toBeGreaterThan(0);
+    expect(Number(body.checkin.companion.heavy_share)).toBeGreaterThan(0);
+  });
+
+  it('hides jokes by default and shows them only after opt-in or faculty review', () => {
+    const store = createDemoStore();
+    const off = get('/api/calm/lines?language=en', store).body as { lines: Array<{ kind: string }> };
+    expect(off.lines.every((l) => l.kind === 'support')).toBe(true);
+    put(`/api/residents/${R}/companion-prefs`, { jokesOptIn: true }, store);
+    const on = get('/api/calm/lines?language=en&jokes=1', store).body as { lines: Array<{ kind: string }> };
+    expect(on.lines.some((l) => l.kind === 'joke')).toBe(true);
+    const faculty = get('/api/calm/lines?language=en&review=1&jokes=1', store).body as { lines: Array<{ kind: string }> };
+    expect(faculty.lines.some((l) => l.kind === 'joke')).toBe(true);
   });
 });

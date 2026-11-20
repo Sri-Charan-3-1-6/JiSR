@@ -40,7 +40,7 @@
   },
   "demo": {
     "button": "Demo mode",
-    "hint": "A guided 6-step story on seeded data — no live API calls.",
+    "hint": "A guided 8-step story on seeded data — no live API calls.",
     "badge": "Demo mode",
     "guideLabel": "Demo guide",
     "step": "Step {k} of {n}",
@@ -60,7 +60,11 @@
     "s5title": "A human navigator calls",
     "s5body": "The navigator sees the breached deadline, logs a reached call, and advances the case. Follow-up and escalation are always human-led.",
     "s6title": "The system sees the gap",
-    "s6body": "Gap Finder aggregates outcomes by language: Hindi-speaking residents convert from screen to match at a lower rate. The what-if panel simulates language-matched outreach — deterministic math, no AI."
+    "s6body": "Gap Finder aggregates outcomes by language: Hindi-speaking residents convert from screen to match at a lower rate. The what-if panel simulates language-matched outreach — deterministic math, no AI.",
+    "s7title": "Gentle check-ins, on your terms",
+    "s7body": "The resident sets their own schedule, quiet hours and a daily cap. A missed check-in climbs a bounded ladder — one reminder, one gentle second, then a human navigator task. Reminders always stop; nothing loops endlessly.",
+    "s8title": "A trusted contact, only after a human fails",
+    "s8body": "Only after the navigator’s call cannot reach the resident, one generic message asks a trusted person to call. It never contains scores or health wording. The send is simulated, and a reply is recorded only as “contact made”."
   },
   "about": {
     "metaTitle": "About JISR — requirements map and honest limitations",

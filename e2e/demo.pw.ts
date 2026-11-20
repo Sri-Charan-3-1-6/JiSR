@@ -24,7 +24,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
   const shot = (k: number) => page.screenshot({ path: `${SHOTS}/step-${k}-${width}.png` });
 
   // Step 1 — screening
-  await expect(guide.getByText('Step 1 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 1 of 8')).toBeVisible();
   await expect(page).toHaveURL(/\/resident\/screen\/PHQ9/);
   if (interact) {
     for (const a of ANSWERS) {
@@ -37,7 +37,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
 
   // Step 2 — result + plain-language explanation
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(guide.getByText('Step 2 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 2 of 8')).toBeVisible();
   await expect(page).toHaveURL(/\/resident\/result\/demo-case/);
   await expect(page.getByText('PHQ-9 score: 10')).toBeVisible();
   await expect(page.getByText('moderate level of symptoms')).toBeVisible();
@@ -46,7 +46,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
 
   // Step 3 — matched support step, accept
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(guide.getByText('Step 3 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 3 of 8')).toBeVisible();
   if (interact) {
     await page.getByRole('button', { name: 'Accept — connect me with support' }).click();
     await expect(page.getByText('Matched', { exact: true }).first()).toBeVisible();
@@ -55,7 +55,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
 
   // Step 4 — missed follow-up, overdue queue
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(guide.getByText('Step 4 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 4 of 8')).toBeVisible();
   await expect(page).toHaveURL(/\/navigator$/);
   await expect(page.getByRole('tab', { name: 'Overdue (1)' })).toBeVisible();
   await expect(page.getByText('OVERDUE', { exact: false }).first()).toBeVisible();
@@ -64,7 +64,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
 
   // Step 5 — navigator logs a call
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(guide.getByText('Step 5 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 5 of 8')).toBeVisible();
   await expect(page).toHaveURL(/\/navigator\/case\/demo-case/);
   await expect(page.getByText('SLA BREACHED', { exact: false })).toBeVisible();
   if (interact) {
@@ -79,7 +79,7 @@ async function runStory(page: Page, width: number, height: number, interact: boo
 
   // Step 6 — Gap Finder language gap + what-if
   await guide.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(guide.getByText('Step 6 of 6')).toBeVisible();
+  await expect(guide.getByText('Step 6 of 8')).toBeVisible();
   await expect(page).toHaveURL(/\/health-system/);
   await expect(page.getByText('GAP: matching').first()).toBeVisible();
   await expect(page.getByRole('cell', { name: 'hi', exact: true }).first()).toBeVisible();
@@ -88,6 +88,40 @@ async function runStory(page: Page, width: number, height: number, interact: boo
     await expect(page.getByText('79.6%').first()).toBeVisible({ timeout: 10_000 });
   }
   await shot(6);
+
+  // Step 7 — check-in companion: schedule, bounded ladder, notification center
+  await guide.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(guide.getByText('Step 7 of 8')).toBeVisible();
+  await expect(page).toHaveURL(/\/resident\/checkin/);
+  await expect(page.getByRole('heading', { name: 'Check-in companion', level: 1 })).toBeVisible();
+  await expect(page.getByText('Consecutive misses: 3')).toBeVisible();
+  await expect(page.getByText('Navigator task created').first()).toBeVisible();
+  if (interact) {
+    await page.getByRole('button', { name: 'Check for reminders now' }).click();
+    await expect(page.getByRole('button', { name: 'Mark read' }).first()).toBeVisible();
+    await page.getByRole('button', { name: 'Mark read' }).first().click();
+    await page.getByRole('button', { name: 'I checked in' }).first().click();
+    await expect(page.getByText('Completed', { exact: true }).first()).toBeVisible();
+  }
+  await shot(7);
+
+  // Step 8 — trusted contact: simulated generic message, no health data
+  await guide.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(guide.getByText('Step 8 of 8')).toBeVisible();
+  await expect(page).toHaveURL(/\/resident\/trusted-contact/);
+  await expect(page.getByRole('heading', { name: 'Trusted contact', level: 1 })).toBeVisible();
+  await expect(page.getByText('call could not reach you', { exact: false })).toBeVisible();
+  if (interact) {
+    await page.getByRole('button', { name: 'Send the generic message' }).click();
+    await expect(page.getByText('Simulated', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("JISR-DEMO-099 asked us to let you know they'd appreciate a call."),
+    ).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Open prefilled WhatsApp (demo)' })).toBeVisible();
+    await page.getByRole('button', { name: 'Record a reply' }).click();
+    await expect(page.getByText('Contact made', { exact: true }).first()).toBeVisible();
+  }
+  await shot(8);
 
   // Finish — back home, demo badge gone, live fetch restored
   await guide.getByRole('button', { name: 'Finish demo' }).click();
