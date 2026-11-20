@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { motion, useReducedMotion } from 'motion/react';
 import { RiskBadge, StateBadge, fmtDateTime } from '@/components/ui';
 import { SyntheticBadge } from '@/components/header';
+import { SkeletonCard } from '@/components/ui/skeleton';
 import type { RiskTier } from '@/lib/matching';
 
 interface Screening {
@@ -35,6 +37,7 @@ export default function SummaryPage() {
   const t = useTranslations('summary');
   const tc = useTranslations('common');
   const tt = useTranslations('tiers');
+  const reduce = useReducedMotion();
   const [data, setData] = useState<SummaryData | null>(null);
   const [consentRequired, setConsentRequired] = useState(false);
   const [noResident, setNoResident] = useState(false);
@@ -75,7 +78,12 @@ export default function SummaryPage() {
   }
 
   if (loading) {
-    return <div className="card mx-auto max-w-xl p-6 text-sm text-muted">{t('loading')}</div>;
+    return (
+      <div className="mx-auto max-w-xl">
+        <span className="sr-only">{t('loading')}</span>
+        <SkeletonCard lines={6} />
+      </div>
+    );
   }
   if (noResident || consentRequired) {
     return (
@@ -90,7 +98,7 @@ export default function SummaryPage() {
   }
   if (error || !data) {
     return (
-      <div role="alert" className="card mx-auto max-w-xl border-danger p-6 text-sm text-danger">
+      <div role="alert" className="card mx-auto max-w-xl border-danger/50 p-6 text-sm text-danger">
         {error ?? t('error')}
       </div>
     );
@@ -112,22 +120,22 @@ export default function SummaryPage() {
 
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-xl font-bold">{t('title')}</h1>
+          <h1 className="text-xl font-extrabold tracking-tight">{t('title')}</h1>
           <SyntheticBadge />
         </div>
         <p className="mt-2 text-sm text-muted">{t('intro')}</p>
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-2 font-mono text-xs text-muted">
           {t('generatedAt', { date: fmtDateTime(new Date()), id: data.resident.pseudo_id })}
         </p>
-        <p className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 text-xs text-amber-900">
+        <p className="mt-3 rounded-btn border border-warning/25 bg-warning-soft p-3 text-xs leading-relaxed text-warning">
           {tc('screeningNotDiagnosis')}
         </p>
 
-        <h2 className="mt-5 font-semibold">{t('trend')}</h2>
+        <h2 className="mt-6 font-bold">{t('trend')}</h2>
         {data.screenings.length === 0 ? (
           <p className="mt-1 text-sm text-muted">{t('noScreenings')}</p>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-3 space-y-3">
             {data.screenings.map((s, i) => (
               <li key={i} className="text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -137,10 +145,13 @@ export default function SummaryPage() {
                   </span>
                   <span className="text-xs text-muted">{fmtDateTime(s.created_at)}</span>
                 </div>
-                <div className="mt-1 h-2 rounded-full bg-border">
-                  <div
-                    className="h-2 rounded-full bg-teal-700"
-                    style={{ width: `${Math.round((s.total_score / maxScore) * 100)}%` }}
+                <div className="mt-1.5 h-2 overflow-hidden rounded-pill bg-surface-2">
+                  <motion.div
+                    className="h-full w-full origin-left rounded-pill rtl:origin-right"
+                    style={{ background: 'var(--gradient-brand)' }}
+                    initial={reduce ? false : { scaleX: 0 }}
+                    animate={{ scaleX: s.total_score / maxScore }}
+                    transition={{ duration: 0.4, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
               </li>
@@ -148,28 +159,28 @@ export default function SummaryPage() {
           </ul>
         )}
 
-        <h2 className="mt-5 font-semibold">{t('conditions')}</h2>
+        <h2 className="mt-6 font-bold">{t('conditions')}</h2>
         <p className="mt-1 text-sm text-muted">
           {data.flags?.physical_conditions?.length
             ? data.flags.physical_conditions.join(', ')
             : t('noneRecorded')}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <p>
-            <span className="font-medium">{t('sleepFlag')}:</span>{' '}
+          <p className="rounded-btn bg-surface-2 p-3">
+            <span className="font-semibold">{t('sleepFlag')}:</span>{' '}
             {data.flags?.sleep_flag ? t('yes') : t('no')}
           </p>
-          <p>
-            <span className="font-medium">{t('painFlag')}:</span>{' '}
+          <p className="rounded-btn bg-surface-2 p-3">
+            <span className="font-semibold">{t('painFlag')}:</span>{' '}
             {data.flags?.pain_flag ? t('yes') : t('no')}
           </p>
         </div>
 
-        <h2 className="mt-5 font-semibold">{t('followupStatus')}</h2>
+        <h2 className="mt-6 font-bold">{t('followupStatus')}</h2>
         {data.cases.length === 0 ? (
           <p className="mt-1 text-sm text-muted">{t('noneRecorded')}</p>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-3 space-y-2">
             {data.cases.map((c, i) => (
               <li key={i} className="flex flex-wrap items-center gap-2 text-sm">
                 <RiskBadge tier={c.risk_tier} />

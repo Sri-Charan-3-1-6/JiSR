@@ -4,18 +4,18 @@ import { useTranslations } from 'next-intl';
 import type { RiskTier } from '@/lib/matching';
 
 const TIER_CLASSES: Record<RiskTier, string> = {
-  minimal: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-  mild: 'bg-lime-100 text-lime-900 border-lime-300',
-  moderate: 'bg-amber-100 text-amber-900 border-amber-300',
-  moderately_severe: 'bg-orange-100 text-orange-900 border-orange-300',
-  severe: 'bg-red-100 text-red-900 border-red-300',
-  crisis: 'bg-red-600 text-white border-red-700',
+  minimal: 'bg-success-soft text-success border-success/30',
+  mild: 'bg-lime-100 text-lime-900 border-lime-300 dark:bg-lime-950 dark:text-lime-200 dark:border-lime-800',
+  moderate: 'bg-warning-soft text-warning border-warning/30',
+  moderately_severe: 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-950 dark:text-orange-200 dark:border-orange-800',
+  severe: 'bg-danger-soft text-danger border-danger/30',
+  crisis: 'bg-danger text-white border-danger dark:text-[#2a0d0b]',
 };
 
 export function RiskBadge({ tier }: { tier: RiskTier }) {
   const t = useTranslations('tiers');
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${TIER_CLASSES[tier]}`}>
+    <span className={`inline-flex rounded-pill border px-2.5 py-1 text-xs font-semibold leading-none ${TIER_CLASSES[tier]}`}>
       {t(tier)}
     </span>
   );
@@ -24,7 +24,7 @@ export function RiskBadge({ tier }: { tier: RiskTier }) {
 export function StateBadge({ state }: { state: string }) {
   const t = useTranslations('states');
   return (
-    <span className="inline-flex rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-medium text-muted">
+    <span className="inline-flex rounded-pill border border-border bg-surface-2 px-2.5 py-1 text-xs font-medium leading-none text-muted">
       {t.has(state) ? t(state) : state}
     </span>
   );

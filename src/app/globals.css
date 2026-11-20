@@ -1,59 +1,280 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(html[data-theme="dark"], html[data-theme="dark"] *));
+
+/* ---------------------------------------------------------------------------
+   JISR design tokens — calm, trustworthy health-tech. Light + dark themes.
+   Raw tokens use non-Tailwind names; @theme maps them to utility namespaces.
+--------------------------------------------------------------------------- */
 :root {
-  --background: #f6f8f8;
-  --foreground: #1c2b2d;
+  --background: #f4f7f7;
+  --foreground: #16282a;
   --card: #ffffff;
-  --primary: #0f766e;
+  --surface-2: #edf3f3;
+  --primary: #0e7c74;
+  --primary-strong: #0a5f59;
   --primary-foreground: #ffffff;
-  --muted: #5c6f70;
-  --border: #d8e0e0;
-  --danger: #b91c1c;
-  --warning: #b45309;
+  --accent: #5b5bd6;
+  --muted: #4f6a6c;
+  --border: #dbe6e6;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --warning: #9a5b00;
+  --warning-soft: #fdf3e0;
+  --success: #177a4c;
+  --success-soft: #e5f5ec;
+  --ring: #0e7c74;
+
+  --gradient-brand: linear-gradient(135deg, #0e7c74 0%, #3b6fb0 55%, #5b5bd6 100%);
+  --gradient-soft: linear-gradient(135deg, rgba(14, 124, 116, 0.08), rgba(91, 91, 214, 0.08));
+
+  --r-card: 20px;
+  --r-btn: 14px;
+  --r-sm: 10px;
+  --r-pill: 999px;
+
+  --elev-1: 0 1px 2px rgba(16, 40, 42, 0.05), 0 1px 1px rgba(16, 40, 42, 0.04);
+  --elev-2: 0 4px 16px -4px rgba(16, 40, 42, 0.1), 0 2px 4px rgba(16, 40, 42, 0.05);
+  --elev-3: 0 12px 32px -8px rgba(16, 40, 42, 0.18);
+
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 400ms;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --background: #0d1517;
+  --foreground: #e6efef;
+  --card: #142023;
+  --surface-2: #1b2b2f;
+  --primary: #2fbfae;
+  --primary-strong: #57d4c5;
+  --primary-foreground: #06201d;
+  --accent: #9d9df5;
+  --muted: #9db4b6;
+  --border: #27393d;
+  --danger: #f2726b;
+  --danger-soft: #3a1d1c;
+  --warning: #e0a63a;
+  --warning-soft: #33270f;
+  --success: #4cc38a;
+  --success-soft: #12291d;
+  --ring: #2fbfae;
+
+  --gradient-brand: linear-gradient(135deg, #2fbfae 0%, #6ea8e8 55%, #9d9df5 100%);
+  --gradient-soft: linear-gradient(135deg, rgba(47, 191, 174, 0.1), rgba(157, 157, 245, 0.1));
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 4px 16px -4px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --elev-3: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-surface-2: var(--surface-2);
   --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
   --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
-  --font-sans: var(--font-geist-sans);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-latin);
   --font-mono: var(--font-geist-mono);
+  --radius-card: var(--r-card);
+  --radius-btn: var(--r-btn);
+  --radius-sm: var(--r-sm);
+  --radius-pill: var(--r-pill);
+  --shadow-1: var(--elev-1);
+  --shadow-2: var(--elev-2);
+  --shadow-3: var(--elev-3);
+  --ease-out: var(--ease-smooth);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-latin), "Segoe UI", Arial, sans-serif;
+  transition: background-color var(--dur) var(--ease-smooth), color var(--dur) var(--ease-smooth);
+}
+html[lang="ar"] body {
+  font-family: var(--font-arabic), var(--font-latin), "Segoe UI", Arial, sans-serif;
+}
+html[lang="hi"] body {
+  font-family: var(--font-devanagari), var(--font-latin), "Segoe UI", Arial, sans-serif;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Component classes live in the components layer so Tailwind utilities
+   (p-0, w-auto, rounded-pill, bg-*, border-*) can override them. */
+@layer components {
+/* Cards ------------------------------------------------------------------ */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--r-card);
+  box-shadow: var(--elev-1);
+}
+.card-hover {
+  transition: transform var(--dur) var(--ease-smooth), box-shadow var(--dur) var(--ease-smooth),
+    border-color var(--dur) var(--ease-smooth);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
 }
 
+/* Buttons ---------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.625rem;
+  border-radius: var(--r-btn);
   font-weight: 600;
   padding: 0.75rem 1.25rem;
-  min-height: 48px;
+  min-height: 44px;
   cursor: pointer;
-  transition: background-color 120ms ease, opacity 120ms ease;
+  transition: background-color var(--dur-fast) var(--ease-smooth),
+    border-color var(--dur-fast) var(--ease-smooth), color var(--dur-fast) var(--ease-smooth),
+    transform var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background: var(--primary); color: var(--primary-foreground); }
-.btn-primary:hover:not(:disabled) { background: #115e59; }
-.btn-outline { background: var(--card); border: 1px solid var(--border); color: var(--foreground); }
-.btn-outline:hover:not(:disabled) { background: #eef2f2; }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-danger:hover:not(:disabled) { background: #991b1b; }
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--elev-1);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-strong);
+  box-shadow: var(--elev-2);
+}
+.btn-outline {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+html[data-theme="dark"] .btn-danger {
+  color: #2a0d0b;
+}
+.btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 85%, black);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+/* Inputs ----------------------------------------------------------------- */
+.input {
+  width: 100%;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 0.625rem 0.875rem;
+  min-height: 44px;
+  transition: border-color var(--dur-fast) var(--ease-smooth);
+}
+.input:focus {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--ring) 35%, transparent);
+  outline-offset: 0;
+}
+
+/* Skeleton shimmer (transform-only) -------------------------------------- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--card) 65%, transparent), transparent);
+  animation: shimmer 1.4s infinite;
+}
+html[dir="rtl"] .skeleton::after {
+  animation-name: shimmer-rtl;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes shimmer-rtl {
+  100% { transform: translateX(-100%); }
+}
+
+/* Calm crisis breathing + soft overdue pulse (both far below 3 Hz) -------- */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+.breathe {
+  animation: breathe 6s ease-in-out infinite;
+}
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+.soft-pulse {
+  animation: soft-pulse 2.4s ease-in-out infinite;
+}
+
+/* Score ring fill (single SVG stroke, 400ms) ------------------------------ */
+.ring-fill {
+  transition: stroke-dashoffset var(--dur-slow) var(--ease-smooth);
+}
+}
+
+/* Reduced motion: simplify everything ------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

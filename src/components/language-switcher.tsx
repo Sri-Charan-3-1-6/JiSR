@@ -20,15 +20,22 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div role="group" aria-label={t('language')} className="flex gap-1 rounded-lg bg-white/10 p-1">
+    <div
+      role="group"
+      aria-label={t('language')}
+      className="flex gap-0.5 rounded-pill border border-border bg-surface-2 p-1"
+    >
       {OPTIONS.map((o) => (
         <button
           key={o.code}
           onClick={() => choose(o.code)}
           aria-pressed={locale === o.code}
-          className={`rounded-md px-2.5 py-1.5 text-sm font-medium ${
-            locale === o.code ? 'bg-white text-teal-800' : 'text-teal-50 hover:bg-white/15'
+          className={`rounded-pill px-2.5 py-2 text-sm font-semibold transition-colors duration-150 ${
+            locale === o.code
+              ? 'bg-card text-primary-strong shadow-1'
+              : 'text-muted hover:text-foreground'
           }`}
+          style={{ minHeight: 36 }}
         >
           {o.label}
         </button>

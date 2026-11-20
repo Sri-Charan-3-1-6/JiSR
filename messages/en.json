@@ -9,13 +9,21 @@
     "screeningNotDiagnosis": "This is a screening, not a diagnosis.",
     "pseudoId": "Pseudonymous ID",
     "genericError": "Something went wrong. Please try again.",
-    "language": "Language"
+    "language": "Language",
+    "theme": "Toggle dark mode",
+    "close": "Close",
+    "saved": "Saved",
+    "tagline": "bridge to wellbeing support"
   },
   "nav": {
     "resident": "Resident",
     "navigator": "Navigator",
     "healthSystem": "Health System",
-    "employer": "Employer"
+    "employer": "Employer",
+    "home": "Home",
+    "consent": "Consent",
+    "summary": "Summary",
+    "wearable": "Wearable"
   },
   "home": {
     "title": "JISR — a bridge from screening to real human support",

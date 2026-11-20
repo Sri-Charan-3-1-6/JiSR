@@ -2,61 +2,78 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { EMERGENCY_CONFIG } from '@/config/emergency';
 import { SyntheticBadge } from '@/components/header';
+import EmergencyOverlay from '@/components/emergency-overlay';
 
 // Full-screen emergency page — fixed rules, never AI (hard rule 3).
+// Calm by design: soft colours, slow breathing cue, no flashing.
 export default async function EmergencyPage() {
   const t = await getTranslations('emergency');
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-red-50">
-      <div className="mx-auto max-w-xl px-4 py-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-red-800">{t('title')}</h1>
+    <EmergencyOverlay>
+      <div className="mx-auto max-w-xl px-4 py-10">
+        <div className="flex flex-col items-center text-center">
+          <div className="relative flex h-24 w-24 items-center justify-center" aria-hidden="true">
+            <span className="breathe absolute inset-0 rounded-pill bg-primary/15" />
+            <span className="absolute inset-3 rounded-pill bg-primary/15" />
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" className="relative text-primary">
+              <path
+                d="M12 21 C7 17 3.5 13.5 3.5 9.5 C3.5 6.5 5.8 4.5 8.5 4.5 C10 4.5 11.3 5.2 12 6.3 C12.7 5.2 14 4.5 15.5 4.5 C18.2 4.5 20.5 6.5 20.5 9.5 C20.5 13.5 17 17 12 21 Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-danger">{t('title')}</h1>
+          <div className="mt-3"><SyntheticBadge /></div>
         </div>
-        <div className="mt-2"><SyntheticBadge /></div>
 
-        <div className="card mt-5 border-red-200 p-5">
-          <ul className="space-y-3 text-sm leading-relaxed">
+        <div className="card mt-6 p-6">
+          <ul className="space-y-4 text-base leading-relaxed">
             {[0, 1, 2, 3, 4].map((i) => (
-              <li key={i}>{t(`guidance.${i}`)}</li>
+              <li key={i} className="flex gap-3">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-pill bg-primary" aria-hidden="true" />
+                {t(`guidance.${i}`)}
+              </li>
             ))}
           </ul>
         </div>
 
-        <div className="card mt-4 border-red-200 p-5">
-          <h2 className="font-semibold text-red-800">{t('contacts')}</h2>
-          <p className="mt-1 rounded bg-amber-100 p-2 text-xs font-semibold text-amber-900">
+        <div className="card mt-4 p-6">
+          <h2 className="font-bold">{t('contacts')}</h2>
+          <p className="mt-2 rounded-btn bg-warning-soft p-3 text-xs font-semibold text-warning">
             {EMERGENCY_CONFIG.verificationNotice}
           </p>
-          <dl className="mt-3 space-y-3 text-sm">
-            <div>
-              <dt className="font-medium">{t('ambulance')}</dt>
-              <dd className="text-muted">{EMERGENCY_CONFIG.ambulance.number}</dd>
+          <dl className="mt-4 space-y-3 text-sm">
+            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
+              <dt className="font-semibold">{t('ambulance')}</dt>
+              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.ambulance.number}</dd>
             </div>
-            <div>
-              <dt className="font-medium">{t('mentalHealthLine')}</dt>
-              <dd className="text-muted">{EMERGENCY_CONFIG.mentalHealthLine.number}</dd>
+            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
+              <dt className="font-semibold">{t('mentalHealthLine')}</dt>
+              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.mentalHealthLine.number}</dd>
             </div>
-            <div>
-              <dt className="font-medium">{t('emergencyDepartment')}</dt>
-              <dd className="text-muted">{EMERGENCY_CONFIG.emergencyDepartment.number}</dd>
+            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
+              <dt className="font-semibold">{t('emergencyDepartment')}</dt>
+              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.emergencyDepartment.number}</dd>
             </div>
           </dl>
         </div>
 
-        <a href="#human" className="btn btn-danger mt-5 w-full text-lg">
+        <a href="#human" className="btn btn-danger mt-6 w-full text-lg" style={{ minHeight: 56 }}>
           {t('talkToHuman')}
         </a>
 
-        <div id="human" className="card mt-4 border-red-200 p-5 text-sm">
-          <h2 className="font-semibold">{t('humanAlerted')}</h2>
-          <p className="mt-2 text-muted">{t('humanAlertedBody')}</p>
-          <Link href="/navigator" className="btn btn-outline mt-3 w-full">
+        <div id="human" className="card mt-4 p-6 text-sm">
+          <h2 className="font-bold text-success">{t('humanAlerted')}</h2>
+          <p className="mt-2 leading-relaxed text-muted">{t('humanAlertedBody')}</p>
+          <Link href="/navigator" className="btn btn-outline mt-4 w-full">
             {t('openNavigator')}
           </Link>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted">{t('footerNote')}</p>
+        <p className="mt-8 text-center text-xs text-muted">{t('footerNote')}</p>
       </div>
-    </div>
+    </EmergencyOverlay>
   );
 }

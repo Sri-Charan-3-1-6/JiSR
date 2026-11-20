@@ -11,13 +11,16 @@
     "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
+    "motion": "^14.14.0",
     "next": "16.4.6",
     "next-intl": "^4.15.3",
     "pg": "^8.23.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "recharts": "^3.11.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",

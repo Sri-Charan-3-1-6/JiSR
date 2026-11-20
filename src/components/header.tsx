@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { motion, useReducedMotion } from 'motion/react';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { BridgeArc } from '@/components/logo';
+import { Badge } from '@/components/ui/badge';
 
 const PORTALS = [
   { href: '/resident', key: 'resident' },
@@ -15,8 +19,12 @@ const PORTALS = [
 export function RoleSwitcher() {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const reduce = useReducedMotion();
   return (
-    <nav aria-label="Role switcher" className="flex gap-1 rounded-lg bg-white/10 p-1">
+    <nav
+      aria-label="Role switcher"
+      className="flex min-w-0 max-w-full gap-0.5 overflow-x-auto rounded-pill border border-border bg-surface-2 p-1"
+    >
       {PORTALS.map((p) => {
         const active = pathname.startsWith(p.href);
         return (
@@ -24,11 +32,18 @@ export function RoleSwitcher() {
             key={p.href}
             href={p.href}
             aria-current={active ? 'page' : undefined}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              active ? 'bg-white text-teal-800' : 'text-teal-50 hover:bg-white/15'
+            className={`relative whitespace-nowrap rounded-pill px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
+              active ? 'text-primary-foreground' : 'text-muted hover:text-foreground'
             }`}
           >
-            {t(p.key)}
+            {active && (
+              <motion.span
+                layoutId="role-switcher-pill"
+                className="absolute inset-0 rounded-pill bg-primary"
+                transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className="relative z-10">{t(p.key)}</span>
           </Link>
         );
       })}
@@ -39,25 +54,35 @@ export function RoleSwitcher() {
 export function SyntheticBadge() {
   const t = useTranslations('common');
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 border border-amber-300">
+    <Badge tone="warning" className="whitespace-nowrap">
       {t('syntheticBadge')}
-    </span>
+    </Badge>
   );
 }
 
 export function Header() {
+  const t = useTranslations('common');
   return (
-    <header className="bg-teal-800 text-white">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <Link href="/" className="flex items-baseline gap-2">
-          <span className="text-xl font-bold tracking-tight">JISR</span>
-          <span className="hidden text-xs text-teal-200 sm:inline">bridge to wellbeing support</span>
+    <header className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="JISR">
+          <BridgeArc size={30} />
+          <span className="flex flex-col leading-tight">
+            <span className="text-lg font-extrabold tracking-tight">JISR</span>
+            <span className="hidden text-[11px] font-medium text-muted sm:block">{t('tagline')}</span>
+          </span>
         </Link>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
           <RoleSwitcher />
           <LanguageSwitcher />
-          <SyntheticBadge />
+          <ThemeToggle />
+          <span className="hidden md:inline-flex">
+            <SyntheticBadge />
+          </span>
         </div>
+        <span className="md:hidden">
+          <SyntheticBadge />
+        </span>
       </div>
     </header>
   );

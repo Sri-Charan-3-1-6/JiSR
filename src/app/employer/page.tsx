@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { motion, useReducedMotion } from 'motion/react';
+import { CountUp, Stat } from '@/components/ui/stat';
+import { Modal } from '@/components/ui/modal';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { SyntheticBadge } from '@/components/header';
 
 interface GroupCount {
   group_value: string;
@@ -23,10 +28,12 @@ function CountTable({ title, labels, rows }: {
   rows: GroupCount[];
 }) {
   const t = useTranslations('employer');
+  const reduce = useReducedMotion();
   const byValue = new Map(rows.map((r) => [r.group_value, r.resident_count]));
+  const max = Math.max(1, ...rows.map((r) => Number(r.resident_count)));
   return (
     <div className="card p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
+      <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{title}</h2>
       <table className="mt-2 w-full text-sm">
         <thead>
           <tr className="border-b border-border text-xs text-muted">
@@ -35,18 +42,30 @@ function CountTable({ title, labels, rows }: {
           </tr>
         </thead>
         <tbody>
-          {labels.map((l) => {
+          {labels.map((l, i) => {
             const count = byValue.get(l.value);
             return (
               <tr key={l.value} className="border-b border-border/60">
-                <td className="py-1.5">{l.label}</td>
-                <td className="py-1.5 text-end font-mono">
+                <td className="py-2">
+                  {l.label}
+                  {count !== undefined && (
+                    <div className="mt-1 h-1 w-full overflow-hidden rounded-pill bg-surface-2">
+                      <motion.div
+                        className="h-full w-full origin-left rounded-pill bg-primary/70 rtl:origin-right"
+                        initial={reduce ? false : { scaleX: 0 }}
+                        animate={{ scaleX: Number(count) / max }}
+                        transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                    </div>
+                  )}
+                </td>
+                <td className="py-2 text-end font-mono align-top">
                   {count === undefined ? (
-                    <span className="text-muted" title={t('suppressedTitle')}>
+                    <span className="text-muted" title={t('suppressedTitle')} dir="ltr">
                       &lt;10
                     </span>
                   ) : (
-                    count
+                    <CountUp value={Number(count)} />
                   )}
                 </td>
               </tr>
@@ -60,6 +79,7 @@ function CountTable({ title, labels, rows }: {
 
 export default function EmployerPage() {
   const t = useTranslations('employer');
+  const tc = useTranslations('common');
   const [areas, setAreas] = useState<GroupCount[]>([]);
   const [languages, setLanguages] = useState<GroupCount[]>([]);
   const [ages, setAges] = useState<GroupCount[]>([]);
@@ -67,6 +87,7 @@ export default function EmployerPage() {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/employer')
@@ -87,39 +108,60 @@ export default function EmployerPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <section className="card p-6">
-        <h1 className="text-xl font-bold">{t('title')}</h1>
-        <p className="mt-3 rounded-lg bg-teal-50 border border-teal-200 p-3 text-sm font-medium text-teal-900">
+    <div className="space-y-6">
+      <section className="card p-6" style={{ background: 'var(--gradient-soft), var(--card)' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <SyntheticBadge />
+            <button
+              onClick={() => setInfoOpen(true)}
+              aria-label={t('suppressedTitle')}
+              className="btn btn-ghost h-11 w-11 rounded-pill p-0"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M12 11 V16.5 M12 7.5 V8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <p className="mt-3 rounded-btn border border-primary/25 bg-primary/10 p-3 text-sm font-semibold text-primary-strong">
           {t('banner')}
         </p>
         <p className="mt-3 text-sm text-muted">{t('note')}</p>
       </section>
 
+      <Modal open={infoOpen} onClose={() => setInfoOpen(false)} title={t('suppressedTitle')} closeLabel={tc('close')}>
+        <p className="leading-relaxed text-muted">{t('note')}</p>
+        <p className="mt-2 leading-relaxed text-muted">{t('suppressedNotCounted')}</p>
+      </Modal>
+
       {loading ? (
-        <section className="card p-6 text-sm text-muted">{t('loading')}</section>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <span className="sr-only">{t('loading')}</span>
+          {Array.from({ length: 4 }, (_, i) => (
+            <SkeletonCard key={i} lines={5} />
+          ))}
+        </div>
       ) : error ? (
-        <section role="alert" className="card border-danger p-6 text-sm text-danger">
+        <section role="alert" className="card border-danger/50 p-6 text-sm text-danger">
           {error}
         </section>
       ) : (
         <>
           <section className="grid grid-cols-2 gap-3">
-            <div className="card p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                {t('screeningsTotal')}
-              </p>
-              <p className="mt-1 text-2xl font-bold">{totals?.screenings_total ?? '—'}</p>
-            </div>
-            <div className="card p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                {t('residentsTotal')}
-              </p>
-              <p className="mt-1 text-2xl font-bold">
-                {areas.reduce((s, r) => s + Number(r.resident_count), 0) || '—'}
-              </p>
-              <p className="mt-1 text-xs text-muted">{t('suppressedNotCounted')}</p>
-            </div>
+            <Stat
+              label={t('screeningsTotal')}
+              value={totals?.screenings_total ?? '—'}
+              numericValue={totals ? Number(totals.screenings_total) : undefined}
+            />
+            <Stat
+              label={t('residentsTotal')}
+              value={String(areas.reduce((s, r) => s + Number(r.resident_count), 0) || '—')}
+              numericValue={areas.reduce((s, r) => s + Number(r.resident_count), 0) || undefined}
+              hint={t('suppressedNotCounted')}
+            />
           </section>
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <CountTable

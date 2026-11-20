@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { motion, useReducedMotion } from 'motion/react';
 import { RiskBadge, StateBadge, fmtDateTime, fmtDuration, intervalToMs } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { matchSupport, nextState, STATE_ORDER, type CaseState, type RiskTier } from '@/lib/matching';
 
 interface CaseDetail {
@@ -55,6 +57,8 @@ export default function CaseClient({ id }: { id: string }) {
   const tm = useTranslations('milestones');
   const tr = useTranslations('result');
   const tt = useTranslations('tiers');
+  const reduce = useReducedMotion();
+  const toast = useToast();
   const [kase, setKase] = useState<CaseDetail | null>(null);
   const [sla, setSla] = useState<SlaInfo | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -91,6 +95,7 @@ export default function CaseClient({ id }: { id: string }) {
       });
       const d = await res.json();
       if (!res.ok) setError(d.error);
+      else toast(tc('saved'));
       await load();
     } finally {
       setBusy(false);
@@ -108,6 +113,7 @@ export default function CaseClient({ id }: { id: string }) {
       });
       const d = await res.json();
       if (!res.ok) setError(d.error);
+      else toast(tc('saved'));
       setNote('');
       await load();
     } finally {
@@ -126,16 +132,17 @@ export default function CaseClient({ id }: { id: string }) {
   const milestone = (m: string | null) => (m && tm.has(m) ? tm(m) : m ?? '');
   const channelLabel = (c: string) => (t.has(c) ? t(c) : c);
   const outcomeLabel = (o: string) => (o === 'reached' ? t('reached') : o === 'not_reached' ? t('notReached') : o);
+  const reachedIndex = STATE_ORDER.indexOf(kase.state);
 
   return (
     <div className="space-y-5">
-      <Link href="/navigator" className="text-sm text-teal-700 underline">{t('backToQueue')}</Link>
+      <Link href="/navigator" className="inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline">{t('backToQueue')}</Link>
 
-      <section className="card p-5">
+      <section className="card p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <RiskBadge tier={kase.risk_tier} />
           <StateBadge state={kase.state} />
-          <h1 className="text-lg font-bold">{kase.pseudo_id}</h1>
+          <h1 className="font-mono text-lg font-bold">{kase.pseudo_id}</h1>
         </div>
         <p className="mt-2 text-sm text-muted">
           {t('meta', {
@@ -146,7 +153,7 @@ export default function CaseClient({ id }: { id: string }) {
           })}
         </p>
         {sla?.is_overdue && (
-          <p className="mt-3 rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white">
+          <p className="soft-pulse mt-3 rounded-btn bg-danger px-4 py-2.5 text-sm font-bold text-white dark:text-[#2a0d0b]">
             {t('slaBreached', { milestone: milestone(sla.next_milestone), duration: fmtDuration(intervalToMs(sla.overdue_by)) })}
           </p>
         )}
@@ -159,8 +166,8 @@ export default function CaseClient({ id }: { id: string }) {
       </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="card p-5">
-          <h2 className="font-semibold">{t('screening')}</h2>
+        <section className="card p-5 sm:p-6">
+          <h2 className="font-bold">{t('screening')}</h2>
           {kase.instrument ? (
             <>
               <p className="mt-2 text-sm">
@@ -169,54 +176,74 @@ export default function CaseClient({ id }: { id: string }) {
                 {kase.score_band && tt.has(kase.score_band) ? ` (${tt(kase.score_band)})` : ''}
               </p>
               {kase.crisis_flag && (
-                <p className="mt-1 text-sm font-semibold text-danger">
+                <p className="mt-2 rounded-btn bg-danger-soft p-2 text-sm font-semibold text-danger">
                   {kase.crisis_reason === 'item9' ? t('crisisTriggerItem9') : t('crisisTriggerKeyword')}
                 </p>
               )}
               {kase.answers && (
-                <p className="mt-2 text-xs text-muted">{t('answers')} [{kase.answers.join(', ')}]</p>
+                <p className="mt-2 font-mono text-xs text-muted">{t('answers')} [{kase.answers.join(', ')}]</p>
               )}
               {kase.free_text && (
-                <p className="mt-2 rounded bg-background p-2 text-sm italic">“{kase.free_text}”</p>
+                <p className="mt-2 rounded-btn bg-surface-2 p-3 text-sm italic">“{kase.free_text}”</p>
               )}
             </>
           ) : (
             <p className="mt-2 text-sm text-muted">{t('noScreening')}</p>
           )}
-          <h3 className="mt-4 font-semibold text-sm">{t('suggestedStep')}</h3>
+          <h3 className="mt-5 text-sm font-bold">{t('suggestedStep')}</h3>
           <p className="mt-1 text-sm text-muted">
             {tr(`options.${kase.risk_tier}.${match.options[0].key}.title`)} — {tr(`sla.${kase.risk_tier}`)}
           </p>
           <p className="mt-1 text-xs text-muted">{tr(`why.${kase.risk_tier}`)}</p>
         </section>
 
-        <section className="card p-5">
-          <h2 className="font-semibold">{t('clockTitle')}</h2>
-          <ol className="mt-3 space-y-2">
-            {STATE_ORDER.map((s) => {
-              const reached = STATE_ORDER.indexOf(s) <= STATE_ORDER.indexOf(kase.state);
+        <section className="card p-5 sm:p-6">
+          <h2 className="font-bold">{t('clockTitle')}</h2>
+          <ol className="mt-4 space-y-0">
+            {STATE_ORDER.map((s, i) => {
+              const reached = i <= reachedIndex;
+              const isCurrent = i === reachedIndex;
               return (
-                <li key={s} className="flex items-center gap-2 text-sm">
-                  <span className={`inline-block h-3 w-3 rounded-full ${reached ? 'bg-teal-700' : 'bg-border'}`} />
-                  <span className={reached ? 'font-medium' : 'text-muted'}>{ts(s)}</span>
+                <li key={s} className="relative flex items-center gap-3 pb-4 last:pb-0">
+                  {i < STATE_ORDER.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute start-[7px] top-4 h-full w-0.5 ${i < reachedIndex ? 'bg-primary' : 'bg-border'}`}
+                    />
+                  )}
+                  <motion.span
+                    initial={false}
+                    animate={reached && !reduce ? { scale: [0.6, 1.15, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className={`relative z-10 inline-block h-4 w-4 shrink-0 rounded-pill border-2 ${
+                      reached ? 'border-primary bg-primary' : 'border-border bg-card'
+                    } ${isCurrent ? 'ring-4 ring-primary/20' : ''}`}
+                  />
+                  <span className={`text-sm ${reached ? 'font-semibold' : 'text-muted'}`}>{ts(s)}</span>
                 </li>
               );
             })}
           </ol>
           {next ? (
-            <button onClick={advance} disabled={busy} className="btn btn-primary mt-4 w-full">
+            <motion.button
+              whileTap={reduce ? undefined : { scale: 0.97 }}
+              onClick={advance}
+              disabled={busy}
+              className="btn btn-primary mt-4 w-full"
+            >
               {busy ? tc('saving') : t('markAs', { state: ts(next) })}
-            </button>
+            </motion.button>
           ) : (
-            <p className="mt-4 text-sm font-medium text-emerald-700">{t('complete')}</p>
+            <p className="mt-4 rounded-btn bg-success-soft p-3 text-sm font-semibold text-success">{t('complete')}</p>
           )}
 
-          <h3 className="mt-5 font-semibold text-sm">{t('logOutreach')}</h3>
+          <h3 className="mt-6 text-sm font-bold">{t('logOutreach')}</h3>
           <div className="mt-2 flex gap-2">
             <select
               value={channel}
               onChange={(e) => setChannel(e.target.value)}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm"
+              className="input shrink-0"
+              style={{ width: 'auto' }}
               aria-label={t('channel')}
             >
               <option value="call">{t('call')}</option>
@@ -227,11 +254,11 @@ export default function CaseClient({ id }: { id: string }) {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={t('note')}
-              className="flex-1 rounded-lg border border-border px-3 py-2 text-sm"
+              className="input min-w-0 flex-1"
               aria-label={t('note')}
             />
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             <button onClick={() => logOutreach('reached')} disabled={busy} className="btn btn-primary text-sm">
               {t('reached')}
             </button>
@@ -242,15 +269,15 @@ export default function CaseClient({ id }: { id: string }) {
         </section>
       </div>
 
-      <section className="card p-5">
-        <h2 className="font-semibold">{t('timeline')}</h2>
+      <section className="card p-5 sm:p-6">
+        <h2 className="font-bold">{t('timeline')}</h2>
         {events.length === 0 && outreach.length === 0 ? (
           <p className="mt-2 text-sm text-muted">{t('noEvents')}</p>
         ) : (
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="mt-3 space-y-2.5 text-sm">
             {events.map((e) => (
-              <li key={`e${e.id}`} className="flex gap-2">
-                <span className="shrink-0 text-xs text-muted">{fmtDateTime(e.created_at)}</span>
+              <li key={`e${e.id}`} className="flex gap-3">
+                <span className="shrink-0 font-mono text-xs text-muted">{fmtDateTime(e.created_at)}</span>
                 <span>
                   {e.event_type === 'state_change'
                     ? `${e.from_state ? stateLabel(e.from_state) + ' → ' : ''}${stateLabel(e.to_state)}`
