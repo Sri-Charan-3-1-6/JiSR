@@ -15,6 +15,8 @@ const SCOPES = [
   'share_with_primary_care',
   'anonymous_aggregate_stats',
   'wearable_signal',
+  'reminders',
+  'trusted_contact',
 ] as const;
 
 interface Scope {

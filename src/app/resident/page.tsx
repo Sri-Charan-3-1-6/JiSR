@@ -56,6 +56,9 @@ export default function ResidentHome() {
           <Link href="/resident/screen/GAD7" className="btn btn-outline w-full text-base">
             {t('startGad7')}
           </Link>
+          <Link href="/resident/checkin" className="btn btn-ghost w-full text-base">
+            {t('checkinLink')}
+          </Link>
         </div>
       </section>
 

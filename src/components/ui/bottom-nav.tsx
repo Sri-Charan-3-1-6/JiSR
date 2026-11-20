@@ -9,6 +9,7 @@ const ICONS: Record<string, string> = {
   consent: 'M12 3 L20 6 V12 C20 17 16.5 20 12 21 C7.5 20 4 17 4 12 V6 Z M9 12 L11.5 14.5 L15.5 9.5',
   summary: 'M7 3 H14 L18 7 V21 H7 Z M10 11 H15 M10 15 H15',
   wearable: 'M8 3 H16 L17 7 H7 Z M8 21 H16 L17 17 H7 Z M9 7 H15 V17 H9 Z',
+  checkin: 'M12 21 C7 17 4 13.5 4 9.8 C4 7 6 5 8.5 5 C10 5 11.3 5.8 12 7 C12.7 5.8 14 5 15.5 5 C18 5 20 7 20 9.8 C20 13.5 17 17 12 21 Z M8.5 12 H11 L12 10 L13.5 13.5 L14.5 12 H16.5',
 };
 
 export function BottomNav({

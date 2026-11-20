@@ -11,6 +11,7 @@ export default async function ResidentLayout({ children }: { children: React.Rea
   const t = await getTranslations('nav');
   const items = [
     { href: '/resident', label: t('home'), icon: 'home' as const },
+    { href: '/resident/checkin', label: t('checkin'), icon: 'checkin' as const },
     { href: '/resident/consent', label: t('consent'), icon: 'consent' as const },
     { href: '/resident/summary', label: t('summary'), icon: 'summary' as const },
     { href: '/resident/wearable', label: t('wearable'), icon: 'wearable' as const },
