@@ -7,6 +7,8 @@ const SCOPES = [
   'anonymous_aggregate_stats',
   'wearable_signal',
   'navigator_contact',
+  'reminders',
+  'trusted_contact',
 ] as const;
 
 export async function GET(

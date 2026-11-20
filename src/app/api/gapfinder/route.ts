@@ -25,5 +25,59 @@ export async function GET() {
        select 'area', area, count(*) from gapfinder_case_funnel group by area
      ) t where n < 10 order by dimension, group_value`,
   );
-  return NextResponse.json({ metrics, improvement, fairness, counts, suppressed });
+
+  // Layer 5: check-in metrics, fairness and the aggregate-only companion
+  // report. Suppression counts check-ins per demographic group (groups with
+  // fewer than 10 check-ins — including zero — are named, never counted).
+  const [checkinMetrics] = await query(`select * from gapfinder_checkin_metrics`);
+  const checkinFairness = await query(
+    `select * from gapfinder_checkin_fairness order by dimension, group_value`,
+  );
+  const [companion] = await query(`select * from gapfinder_companion_report`);
+  const checkinSuppressed = await query(
+    `select dimension, group_value from (
+       select 'language' as dimension, r.language as group_value, count(ci.id) as n
+         from residents r left join checkins ci on ci.resident_id = r.id
+         where exists (select 1 from consent_scopes cs where cs.resident_id = r.id
+                        and cs.scope = 'anonymous_aggregate_stats' and cs.granted)
+         group by r.language
+       union all
+       select 'age_band', r.age_band, count(ci.id)
+         from residents r left join checkins ci on ci.resident_id = r.id
+         where exists (select 1 from consent_scopes cs where cs.resident_id = r.id
+                        and cs.scope = 'anonymous_aggregate_stats' and cs.granted)
+         group by r.age_band
+       union all
+       select 'gender', r.gender, count(ci.id)
+         from residents r left join checkins ci on ci.resident_id = r.id
+         where exists (select 1 from consent_scopes cs where cs.resident_id = r.id
+                        and cs.scope = 'anonymous_aggregate_stats' and cs.granted)
+         group by r.gender
+       union all
+       select 'nationality', r.nationality, count(ci.id)
+         from residents r left join checkins ci on ci.resident_id = r.id
+         where exists (select 1 from consent_scopes cs where cs.resident_id = r.id
+                        and cs.scope = 'anonymous_aggregate_stats' and cs.granted)
+         group by r.nationality
+       union all
+       select 'area', r.area, count(ci.id)
+         from residents r left join checkins ci on ci.resident_id = r.id
+         where exists (select 1 from consent_scopes cs where cs.resident_id = r.id
+                        and cs.scope = 'anonymous_aggregate_stats' and cs.granted)
+         group by r.area
+     ) t where n < 10 order by dimension, group_value`,
+  );
+  return NextResponse.json({
+    metrics,
+    improvement,
+    fairness,
+    counts,
+    suppressed,
+    checkin: {
+      metrics: checkinMetrics,
+      fairness: checkinFairness,
+      suppressed: checkinSuppressed,
+      companion,
+    },
+  });
 }
