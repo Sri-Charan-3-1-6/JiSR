@@ -3,7 +3,7 @@
 // Run: npx tsx --env-file=.env.local scripts/pregenerate-explanations.ts
 import { one, query } from '../src/lib/db';
 import { explainTemplate, type Instrument, type Language } from '../src/lib/explain';
-import { breakerRemainingMs, generateExplanation } from '../src/lib/llm/client';
+import { breakerRemainingMs, generateExplanation, resetBreaker } from '../src/lib/llm/client';
 import { validateExplanation } from '../src/lib/llm/validate';
 
 const INSTRUMENTS: Instrument[] = ['PHQ9', 'GAD7'];
@@ -15,6 +15,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function main() {
   let llm = 0;
   let tpl = 0;
+  let streak = 0;
+  let llmDisabled = false;
   for (const instrument of INSTRUMENTS) {
     for (const band of BANDS) {
       for (const language of LANGUAGES) {
@@ -28,16 +30,20 @@ async function main() {
         if (existing?.source === 'llm' && validateExplanation(existing.text, language)) {
           console.log(`${instrument} ${band} ${language} -> kept (${existing.model})`);
           llm++;
+          streak = 0;
           continue;
         }
-        // Respect the circuit breaker instead of burning rows as templates.
+        // Free-tier per-minute quotas recover in ~1 min; a batch run pauses
+        // briefly and resets the breaker instead of sitting out the full 5 min.
         const wait = breakerRemainingMs();
-        if (wait > 0 && band !== 'crisis') {
-          console.log(`breaker open — waiting ${Math.ceil(wait / 1000)}s`);
-          await sleep(wait + 1000);
+        if (wait > 0 && band !== 'crisis' && !llmDisabled) {
+          const pause = Math.min(wait, 65000);
+          console.log(`breaker open — pausing ${Math.ceil(pause / 1000)}s, then resetting breaker`);
+          await sleep(pause + 1000);
+          resetBreaker();
         }
         const r =
-          band === 'crisis'
+          band === 'crisis' || llmDisabled
             ? { text: explainTemplate(input), source: 'template' as const, model: undefined }
             : await generateExplanation(input);
         await query(
@@ -48,11 +54,22 @@ async function main() {
                          model = excluded.model, created_at = sim_now()`,
           [instrument, band, language, r.text, r.source, r.model ?? null],
         );
-        if (r.source === 'llm') llm++;
-        else tpl++;
+        if (r.source === 'llm') {
+          llm++;
+          streak = 0;
+        } else {
+          tpl++;
+          if (band !== 'crisis' && !llmDisabled) {
+            streak++;
+            if (streak >= 8) {
+              llmDisabled = true;
+              console.log('8 consecutive template results — storing templates for the remaining combinations');
+            }
+          }
+        }
         console.log(`${instrument} ${band} ${language} -> ${r.source}${r.model ? ` (${r.model})` : ''}`);
         // Pace requests to stay under free-tier per-minute limits.
-        if (band !== 'crisis') await sleep(3000);
+        if (band !== 'crisis' && !llmDisabled) await sleep(4000);
       }
     }
   }

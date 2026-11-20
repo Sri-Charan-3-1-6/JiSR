@@ -86,7 +86,9 @@ async function chatRequest(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const body: Record<string, unknown> = { max_tokens: 300, temperature: 0.4, messages };
+    // Reasoning models spend hundreds of tokens thinking before any content;
+    // a small cap returns null content. The validator still enforces <120 words.
+    const body: Record<string, unknown> = { max_tokens: 1200, temperature: 0.4, messages };
     if (models.length > 1) body.models = models;
     else body.model = models[0];
     const res = await fetch(`${provider.baseUrl}/chat/completions`, {

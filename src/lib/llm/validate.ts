@@ -6,7 +6,7 @@ import type { Language } from '../explain';
 // uses diagnosis-style or treatment wording.
 
 const NOT_DIAGNOSIS: Record<Language, RegExp> = {
-  en: /not a diagnosis/i,
+  en: /(?:not|isn't|is not) a diagnosis/i,
   ar: /ليس تشخيص/,
   hi: /निदान नहीं/,
 };
@@ -31,7 +31,7 @@ const CONFIRM: Record<Language, RegExp> = {
 
 // Diagnosis-style wording: labels, named disorders, "you have / you are X".
 const DIAGNOSIS: Record<Language, RegExp> = {
-  en: /\b(you have|you've|you are suffering from|you suffer from|diagnosed with|you are depressed|you are anxious|you are bipolar|depression|depressive|bipolar|schizophrenia|schizoaffective|ptsd|ocd|adhd|anorexia|bulimia|psychosis|psychotic|panic disorder|anxiety disorder|social anxiety|generalized anxiety|obsessive[- ]compulsive|post[- ]traumatic|borderline personality|eating disorder|autism|autistic|dementia|alzheimer|addiction|substance use disorder)\b/i,
+  en: /\b(you(?:'ve| have)(?! been)|suffering from|diagnosed with|you are depressed|you are anxious|you are bipolar|depression|depressive|bipolar|schizophrenia|schizoaffective|ptsd|ocd|adhd|anorexia|bulimia|psychosis|psychotic|panic disorder|anxiety disorder|social anxiety|generalized anxiety|obsessive[- ]compulsive|post[- ]traumatic|borderline personality|eating disorder|autism|autistic|dementia|alzheimer|addiction|substance use disorder)\b/i,
   ar: /أنت مصاب|أنك مصاب|تعاني من|تم تشخيصك|تشخيصك هو|لديك اكتئاب|أنت مكتئب|أنت قلق|اكتئاب|ثنائي القطب|فصام|وسواس قهري|ما بعد الصدمة|اضطراب القلق|اضطراب الأكل|ذهان|إدمان/,
   hi: /आपको अवसाद|आप अवसाद|से ग्रस्त|आपका निदान|निदान किया गया|आप उदास हैं|आप चिंतित हैं|अवसाद|द्विध्रुवीय|सिज़ोफ्रेनिया|सिजोफ्रेनिया|पीटीएसडी|ओसीडी|चिंता विकार|खाने का विकार|मनोविकृति|व्यसन|नशा/,
 };

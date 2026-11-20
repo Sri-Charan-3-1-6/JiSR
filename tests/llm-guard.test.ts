@@ -73,6 +73,9 @@ const BAD: { language: Language; why: string; text: string }[] = [
 const GOOD: { language: Language; text: string }[] = [
   { language: 'en', text: 'Your answers suggest a mild level of symptoms. This is a screening, not a diagnosis — it does not mean you have a condition. A health professional should confirm what this means for you.' },
   { language: 'en', text: 'This result suggests very few symptoms right now. It is a screening, not a diagnosis, and it does not label you. A clinician can confirm what it means for you.' },
+  // Natural free-model phrasing: "isn't a diagnosis" and "you've been having"
+  // (symptom description, not a diagnosis assertion) must not be rejected.
+  { language: 'en', text: "Your answers suggest a moderate level of symptoms. You've been having some harder days lately. This is a screening — it isn't a diagnosis, and it does not mean something is wrong with you. A health professional can confirm what this result means for you." },
   { language: 'ar', text: 'إجاباتك تشير إلى مستوى متوسط من الأعراض. هذا فحص استرشادي وليس تشخيصًا، ولا يعني أنك مصاب بحالة. يجب أن يؤكد مختص رعاية صحية ما يعنيه هذا بالنسبة لك.' },
   { language: 'hi', text: 'आपके उत्तर हल्के लक्षण बताते हैं। यह स्क्रीनिंग है, निदान नहीं — इसका मतलब यह नहीं कि आपको कोई स्थिति है। किसी स्वास्थ्य पेशेवर को पुष्टि करनी चाहिए कि यह आपके लिए क्या मायने रखता है।' },
 ];

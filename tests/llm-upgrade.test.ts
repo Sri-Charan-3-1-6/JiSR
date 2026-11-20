@@ -263,6 +263,18 @@ describe('prompt privacy whitelist', () => {
   });
 });
 
+describe('reasoning-model token budget', () => {
+  it('leaves room for reasoning tokens so content is not starved to null', async () => {
+    stubOR();
+    const fetchMock = routerFetch(async () => okRes());
+    vi.stubGlobal('fetch', fetchMock);
+    await generateExplanation({ instrument: 'PHQ9', total: 12, band: 'moderate', language: 'en' });
+    const [, init] = chatCalls(fetchMock)[0] as [string, { body: string }];
+    const body = JSON.parse(init.body);
+    expect(body.max_tokens).toBeGreaterThanOrEqual(1000);
+  });
+});
+
 describe('response validation', () => {
   const fails = async (content: string, language: Language = 'en') => {
     stubOR();
