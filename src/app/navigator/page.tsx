@@ -8,6 +8,7 @@ import { RiskBadge, StateBadge, fmtDateTime, fmtDuration, intervalToMs } from '@
 import { Tabs } from '@/components/ui/tabs';
 import { SkeletonCard } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { TaskCard, type NavigatorTask } from '@/components/navigator/task-card';
 import type { RiskTier } from '@/lib/matching';
 
 interface QueueCase {
@@ -32,6 +33,8 @@ export default function NavigatorConsole() {
   const tm = useTranslations('milestones');
   const reduce = useReducedMotion();
   const [cases, setCases] = useState<QueueCase[]>([]);
+  const [tasks, setTasks] = useState<NavigatorTask[]>([]);
+  const [tasksVisible, setTasksVisible] = useState(5);
   const [clock, setClock] = useState<Clock | null>(null);
   const [tab, setTab] = useState<'all' | 'overdue'>('all');
   const [visible, setVisible] = useState(40);
@@ -45,6 +48,7 @@ export default function NavigatorConsole() {
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? t('loadError'));
       setCases(d.cases);
+      setTasks(d.tasks ?? []);
       setClock(d.clock);
       setError(null);
     } catch (e) {
@@ -109,6 +113,32 @@ export default function NavigatorConsole() {
             </button>
           </div>
         </div>
+      </section>
+
+      <section className="card p-5 sm:p-6">
+        <h2 className="font-bold">{t('tasksTitle')}</h2>
+        {loading ? (
+          <div className="mt-3">
+            <span className="sr-only">{t('loading')}</span>
+            <SkeletonCard lines={2} />
+          </div>
+        ) : tasks.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">{t('tasksEmpty')}</p>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {tasks.slice(0, tasksVisible).map((task) => (
+              <TaskCard key={task.id} task={task} onReload={load} />
+            ))}
+          </ul>
+        )}
+        {!loading && tasks.length > tasksVisible && (
+          <button
+            onClick={() => setTasksVisible(tasksVisible + 10)}
+            className="btn btn-outline mt-3 w-full"
+          >
+            {t('showMore', { n: tasks.length - tasksVisible })}
+          </button>
+        )}
       </section>
 
       <Tabs

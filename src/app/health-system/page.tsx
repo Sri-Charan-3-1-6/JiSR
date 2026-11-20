@@ -41,6 +41,45 @@ interface FairnessRow {
   best_match_to_booked: string | null;
   is_gap_booked: boolean;
 }
+interface CheckinMetrics {
+  checkins_total: string;
+  completed_total: string;
+  missed_total: string;
+  completion_rate: string | null;
+  median_hours_to_reengage: string | null;
+  escalations_total: string;
+  escalations_resolved_human: string;
+  escalations_human_share: string | null;
+}
+interface CheckinFairnessRow {
+  dimension: string;
+  group_value: string;
+  n: string;
+  completion_rate: string;
+  median_hours_to_reengage: string | null;
+  best_completion_rate: string;
+  is_gap: boolean;
+}
+interface CompanionReport {
+  sessions_total: string;
+  heavy_total: string;
+  heavy_share: string | null;
+  crisis_sessions: string;
+}
+interface CheckinBlock {
+  metrics: CheckinMetrics | null;
+  fairness: CheckinFairnessRow[];
+  suppressed: { dimension: string; group_value: string }[];
+  companion: CompanionReport | null;
+}
+interface CalmLine {
+  id: string;
+  language: string;
+  kind: 'support' | 'joke';
+  exercise: string | null;
+  body: string;
+  reviewed: boolean;
+}
 
 const num = (v: string | number | null | undefined) =>
   v === null || v === undefined ? null : Number(v);
@@ -54,6 +93,11 @@ const days = (v: string | number | null | undefined) => {
 };
 const pctFmt = (v: number) => `${v.toFixed(1)}%`;
 const daysFmt = (v: number) => `${v.toFixed(1)} d`;
+const hrs = (v: string | number | null | undefined) => {
+  const n = num(v);
+  return n === null ? '—' : `${n.toFixed(1)} h`;
+};
+const hrsFmt = (v: number) => `${v.toFixed(1)} h`;
 
 function AnimatedPct({ value, active }: { value: number; active?: boolean }) {
   return (
@@ -77,6 +121,12 @@ export default function HealthSystemPage() {
   const [langOutreach, setLangOutreach] = useState(false);
   const [flexSlots, setFlexSlots] = useState(false);
   const [dim, setDim] = useState('language');
+  const [checkin, setCheckin] = useState<CheckinBlock | null>(null);
+  const [checkinDim, setCheckinDim] = useState('language');
+  const [facultyLang, setFacultyLang] = useState('en');
+  const [facultyLines, setFacultyLines] = useState<CalmLine[]>([]);
+  const [facultyBusy, setFacultyBusy] = useState<string | null>(null);
+  const [facultyTick, setFacultyTick] = useState(0);
   const [simReady, setSimReady] = useState(false);
   const [wide, setWide] = useState(false);
   const [moreMetrics, setMoreMetrics] = useState(false);
@@ -115,6 +165,7 @@ export default function HealthSystemPage() {
         setFairness(d.fairness);
         setSuppressed(d.suppressed ?? []);
         setResidentsTotal(d.counts?.residents_total ?? null);
+        setCheckin(d.checkin ?? null);
       })
       .catch(() => setError(t('error')))
       .finally(() => setLoading(false));
@@ -128,6 +179,37 @@ export default function HealthSystemPage() {
       .filter((d) => d.rows.length > 0);
   }, [fairness]);
   const activeDim = dimensions.find((d) => d.dim === dim) ?? dimensions[0];
+
+  const checkinDimensions = useMemo(() => {
+    const order = ['language', 'age_band', 'gender', 'nationality', 'area'];
+    return order
+      .map((dim) => ({ dim, rows: (checkin?.fairness ?? []).filter((r) => r.dimension === dim) }))
+      .filter((d) => d.rows.length > 0);
+  }, [checkin]);
+  const activeCheckinDim = checkinDimensions.find((d) => d.dim === checkinDim) ?? checkinDimensions[0];
+
+  // Faculty moderation list: every pre-written line, including opt-in jokes.
+  useEffect(() => {
+    if (loading) return;
+    fetch(`/api/calm/lines?language=${facultyLang}&review=1&jokes=1`)
+      .then((r) => r.json())
+      .then((d) => setFacultyLines(d.lines ?? []))
+      .catch(() => setFacultyLines([]));
+  }, [loading, facultyLang, facultyTick]);
+
+  async function toggleReviewed(line: CalmLine) {
+    setFacultyBusy(line.id);
+    try {
+      await fetch(`/api/calm/lines/${line.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewed: !line.reviewed }),
+      });
+      setFacultyTick((v) => v + 1);
+    } finally {
+      setFacultyBusy(null);
+    }
+  }
 
   // Deterministic what-if simulation on the language dimension.
   // Intervention A: language-matched outreach closes 60% of each group's
@@ -363,6 +445,174 @@ export default function HealthSystemPage() {
             </div>
           )}
         </div>
+      </section>
+
+      {checkin?.metrics && (
+        <section className="card p-6">
+          <h2 className="font-bold">{t('checkinTitle')}</h2>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Stat
+              label={t('checkinCompletion')}
+              value={pct(checkin.metrics.completion_rate)}
+              numericValue={num(checkin.metrics.completion_rate) === null ? undefined : Number(checkin.metrics.completion_rate) * 100}
+              format={pctFmt}
+              hint={`${checkin.metrics.completed_total} / ${checkin.metrics.checkins_total}`}
+            />
+            <Stat
+              label={t('checkinReengage')}
+              value={hrs(checkin.metrics.median_hours_to_reengage)}
+              numericValue={num(checkin.metrics.median_hours_to_reengage) ?? undefined}
+              format={hrsFmt}
+              hint={t('checkinReengageHint')}
+            />
+            <Stat
+              label={t('checkinEscalations')}
+              value={pct(checkin.metrics.escalations_human_share)}
+              numericValue={num(checkin.metrics.escalations_human_share) === null ? undefined : Number(checkin.metrics.escalations_human_share) * 100}
+              format={pctFmt}
+              hint={t('checkinEscalationsHint', {
+                resolved: checkin.metrics.escalations_resolved_human,
+                total: checkin.metrics.escalations_total,
+              })}
+            />
+          </div>
+        </section>
+      )}
+
+      {checkin && checkinDimensions.length > 0 && (
+        <section className="card p-6">
+          <h2 className="font-bold">{t('checkinFairnessTitle')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('checkinFairnessNote')}</p>
+          <div className="mt-4">
+            <div className="overflow-x-auto">
+              <Tabs
+                tabs={checkinDimensions.map((d) => ({ value: d.dim, label: t(`dimensions.${d.dim}`) }))}
+                active={activeCheckinDim?.dim ?? 'language'}
+                onChange={setCheckinDim}
+                ariaLabel={t('checkinFairnessTitle')}
+              />
+            </div>
+            {activeCheckinDim && (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full min-w-[480px] text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs text-muted">
+                      <th className="py-2 pe-3 text-start">{t('group')}</th>
+                      <th className="py-2 pe-3 text-start">{t('n')}</th>
+                      <th className="py-2 pe-3 text-start">{t('checkinCompletion')}</th>
+                      {wide && <th className="py-2 pe-3 text-start">{t('reengageHours')}</th>}
+                      <th className="py-2 text-start">{t('gapFlag')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeCheckinDim.rows.map((r, i) => (
+                      <tr
+                        key={r.group_value}
+                        className={`border-b border-border/60 transition-colors duration-150 hover:bg-surface-2/60 ${r.is_gap ? 'bg-danger-soft/40' : ''}`}
+                        style={r.is_gap ? { borderInlineStart: '3px solid var(--danger)' } : undefined}
+                      >
+                        <td className="py-2.5 pe-3 font-semibold">{r.group_value}</td>
+                        <td className="py-2.5 pe-3 tabular-nums">{r.n}</td>
+                        <td className="py-2.5 pe-3">
+                          <span className="tabular-nums">{pct(r.completion_rate)}</span>
+                          <span className="ms-1 text-xs text-muted">
+                            ({t('best', { value: pct(r.best_completion_rate) })})
+                          </span>
+                          <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-pill bg-surface-2">
+                            <div
+                              className={`bar-grow h-full w-full origin-left rounded-pill rtl:origin-right ${r.is_gap ? 'bg-danger/70' : 'bg-primary'}`}
+                              style={{ transform: `scaleX(${Number(r.completion_rate)})`, animationDelay: `${Math.min(i, 10) * 50}ms` }}
+                            />
+                          </div>
+                        </td>
+                        {wide && <td className="py-2.5 pe-3 tabular-nums">{hrs(r.median_hours_to_reengage)}</td>}
+                        <td className="py-2.5">
+                          {r.is_gap ? <Badge tone="danger">{t('checkinGap')}</Badge> : <span className="text-xs text-muted">—</span>}
+                        </td>
+                      </tr>
+                    ))}
+                    {checkin.suppressed
+                      .filter((s) => s.dimension === activeCheckinDim.dim)
+                      .map((s) => (
+                        <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
+                          <td className="py-2.5 pe-3 font-semibold">{s.group_value}</td>
+                          <td className="py-2.5 pe-3" title={t('suppressedTitle')}><span dir="ltr">&lt;10</span></td>
+                          <td className="py-2.5 pe-3">—</td>
+                          {wide && <td className="py-2.5 pe-3">—</td>}
+                          <td className="py-2.5 text-xs">{t('hiddenPrivacy')}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {checkin?.companion && (
+        <section className="card p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-bold">{t('companionReportTitle')}</h2>
+            <Badge tone="neutral">{t('companionAggregateNote')}</Badge>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Stat
+              label={t('companionHeavyShare')}
+              value={pct(checkin.companion.heavy_share)}
+              numericValue={num(checkin.companion.heavy_share) === null ? undefined : Number(checkin.companion.heavy_share) * 100}
+              format={pctFmt}
+              hint={t('companionSessionsHint', {
+                n: checkin.companion.sessions_total,
+                crisis: checkin.companion.crisis_sessions,
+              })}
+            />
+          </div>
+        </section>
+      )}
+
+      <section className="card p-6">
+        <h2 className="font-bold">{t('facultyTitle')}</h2>
+        <p className="mt-1 text-sm text-muted">{t('facultyHint')}</p>
+        <div className="mt-4 overflow-x-auto">
+          <Tabs
+            tabs={[
+              { value: 'en', label: 'English' },
+              { value: 'ar', label: 'العربية' },
+              { value: 'hi', label: 'हिन्दी' },
+            ]}
+            active={facultyLang}
+            onChange={setFacultyLang}
+            ariaLabel={t('facultyTitle')}
+          />
+        </div>
+        {facultyLines.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">{t('facultyEmpty')}</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {facultyLines.map((line) => (
+              <li key={line.id} className="rounded-btn border border-border bg-surface-2/50 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={line.kind === 'joke' ? 'accent' : 'primary'}>
+                    {line.kind === 'joke' ? t('lineJoke') : t('lineSupport')}
+                  </Badge>
+                  {line.reviewed && <Badge tone="success">{t('reviewed')}</Badge>}
+                  <button
+                    type="button"
+                    onClick={() => toggleReviewed(line)}
+                    disabled={facultyBusy === line.id}
+                    className="btn btn-ghost ms-auto px-3 py-1.5 text-xs"
+                  >
+                    {line.reviewed ? t('markUnreviewed') : t('markReviewed')}
+                  </button>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed" dir={line.language === 'ar' ? 'rtl' : 'ltr'}>
+                  {line.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="card p-6">
