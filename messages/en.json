@@ -1,5 +1,18 @@
 {
+  "ui": {
+    "heroEyebrow": "Earlier support. Human connection.",
+    "heroStart": "A little clarity.",
+    "heroEnd": "A bridge to care.",
+    "residentCta": "Find your next step",
+    "pathTitle": "Your pace. A clear path forward.",
+    "screen": "Screen",
+    "understand": "Understand",
+    "connect": "Connect",
+    "portalEyebrow": "One bridge. Three perspectives.",
+    "portalTitle": "Support, connected."
+  },
   "common": {
+    "skipToContent": "Skip to content",
     "back": "Back",
     "loading": "Loading…",
     "refresh": "Refresh",

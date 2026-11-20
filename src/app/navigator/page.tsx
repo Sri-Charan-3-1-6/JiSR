@@ -42,22 +42,23 @@ export default function NavigatorConsole() {
   const [error, setError] = useState<string | null>(null);
   const [traveling, setTraveling] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch('/api/navigator/queue');
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error ?? t('loadError'));
-      setCases(d.cases);
-      setTasks(d.tasks ?? []);
-      setClock(d.clock);
-      setError(null);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(() =>
+    fetch('/api/navigator/queue')
+      .then(async (res) => {
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error ?? t('loadError'));
+        return d;
+      })
+      .then((d) => {
+        setCases(d.cases);
+        setTasks(d.tasks ?? []);
+        setClock(d.clock);
+        setError(null);
+      })
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setLoading(false)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -80,23 +81,29 @@ export default function NavigatorConsole() {
   const overdueCount = cases.filter((c) => c.is_overdue).length;
 
   return (
-    <div className="space-y-5">
-      <section className="card p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-            <p className="mt-1 text-sm text-muted">
-              {t('subtitle')}{' '}
+    <div className="min-w-0 space-y-6 sm:space-y-8">
+      <section className="workspace-heading surface-hero min-w-0 flex-col gap-0 p-5 sm:p-7">
+        <h1 className="page-heading text-3xl font-bold tracking-tight sm:text-4xl">{t('title')}</h1>
+        <div className="mt-5 flex min-w-0 w-full flex-col gap-4 border-t border-border/70 pt-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-btn bg-primary/10 text-primary" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <p className="min-w-0 text-sm leading-relaxed text-muted">
+              <span className="block text-xs font-medium">{t('subtitle')}</span>{' '}
               <strong className="tabular-nums text-foreground">
-                {clock ? fmtDateTime(clock.now) : <span className="skeleton inline-block h-[1em] w-[18ch] align-middle" aria-hidden="true" />}
+                {clock ? fmtDateTime(clock.now) : <span className="skeleton inline-block h-[1em] w-[18ch] max-w-full align-middle" aria-hidden="true" />}
               </strong>
               {clock && clock.offset !== '00:00:00' && (
                 <span className="ms-1 font-semibold text-warning">{t('offset', { offset: clock.offset })}</span>
               )}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">{t('timeTravel')}</span>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="eyebrow w-full text-xs font-semibold text-muted sm:me-1 sm:w-auto">{t('timeTravel')}</span>
             {[1, 3, 7].map((d) => (
               <motion.button
                 key={d}
@@ -115,43 +122,51 @@ export default function NavigatorConsole() {
         </div>
       </section>
 
-      <section className="card p-5 sm:p-6">
-        <h2 className="font-bold">{t('tasksTitle')}</h2>
-        {loading ? (
-          <div className="mt-3">
-            <span className="sr-only">{t('loading')}</span>
-            <SkeletonCard lines={2} />
-          </div>
-        ) : tasks.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">{t('tasksEmpty')}</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {tasks.slice(0, tasksVisible).map((task) => (
-              <TaskCard key={task.id} task={task} onReload={load} />
-            ))}
-          </ul>
-        )}
-        {!loading && tasks.length > tasksVisible && (
-          <button
-            onClick={() => setTasksVisible(tasksVisible + 10)}
-            className="btn btn-outline mt-3 w-full"
-          >
-            {t('showMore', { n: tasks.length - tasksVisible })}
-          </button>
-        )}
+      <section className="data-panel min-w-0 rounded-card border border-border bg-surface-2/40 p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-3 border-b border-border/70 pb-4">
+          <h2 className="section-heading font-bold">{t('tasksTitle')}</h2>
+          <span className="flex h-8 min-w-8 items-center justify-center rounded-pill bg-card px-2 text-xs font-bold tabular-nums text-muted" aria-hidden="true">{loading ? '—' : tasks.length}</span>
+        </div>
+        <motion.div layoutScroll role="region" aria-label={t('tasksTitle')} tabIndex={0} className="mt-3 h-128 overflow-y-auto rounded-btn p-1">
+          {loading ? (
+            <div>
+              <span className="sr-only">{t('loading')}</span>
+              <SkeletonCard lines={2} />
+            </div>
+          ) : tasks.length === 0 ? (
+            <p className="flex h-full items-center justify-center text-center text-sm text-muted">{t('tasksEmpty')}</p>
+          ) : (
+            <ul className="space-y-3">
+              {tasks.slice(0, tasksVisible).map((task) => (
+                <TaskCard key={task.id} task={task} onReload={load} />
+              ))}
+            </ul>
+          )}
+          {!loading && tasks.length > tasksVisible && (
+            <button
+              onClick={() => setTasksVisible(tasksVisible + 10)}
+              className="btn btn-outline mt-3 w-full"
+            >
+              {t('showMore', { n: tasks.length - tasksVisible })}
+            </button>
+          )}
+        </motion.div>
       </section>
 
-      <Tabs
-        ariaLabel={t('title')}
-        active={tab}
-        onChange={(v) => { setTab(v); setVisible(40); }}
-        tabs={[
-          { value: 'all', label: t('allCases', { n: cases.length }) },
-          { value: 'overdue', label: t('overdue', { n: overdueCount }), danger: true },
-        ]}
-      />
+      <section className="min-w-0 space-y-4">
+        <div className="min-w-0 overflow-x-auto border-b border-border pb-3">
+          <Tabs
+            ariaLabel={t('title')}
+            active={tab}
+            onChange={(v) => { setTab(v); setVisible(40); }}
+            tabs={[
+              { value: 'all', label: t('allCases', { n: cases.length }) },
+              { value: 'overdue', label: t('overdue', { n: overdueCount }), danger: true },
+            ]}
+          />
+        </div>
 
-      {error && <p className="text-danger" role="alert">{error}</p>}
+      {error && <p className="rounded-btn border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">{error}</p>}
       {loading ? (
         <div className="space-y-3">
           <span className="sr-only">{t('loading')}</span>
@@ -173,36 +188,45 @@ export default function NavigatorConsole() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  className={`card card-hover p-4 ${c.is_overdue ? 'border-danger/50' : ''}`}
+                  className={`card min-w-0 p-4 transition-colors duration-150 hover:border-primary/40 sm:p-5 ${c.is_overdue ? 'border-danger/50 border-s-4 hover:border-danger/70' : ''}`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <RiskBadge tier={c.risk_tier} />
-                      <StateBadge state={c.state} />
-                      <span className="font-mono text-sm font-semibold">{c.pseudo_id}</span>
-                      {c.instrument && (
-                        <span className="text-xs text-muted">{c.instrument} · {c.total_score}</span>
+                  <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0 space-y-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                        <span className="break-all font-mono text-base font-semibold tracking-tight">{c.pseudo_id}</span>
+                        {c.instrument && (
+                          <span className="rounded-sm bg-surface-2 px-2 py-1 text-xs tabular-nums text-muted">{c.instrument} · {c.total_score}</span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <RiskBadge tier={c.risk_tier} />
+                        <StateBadge state={c.state} />
+                      </div>
+                      {c.is_overdue ? (
+                        <span className="inline-flex max-w-full items-center gap-2 rounded-btn border border-danger/25 bg-danger-soft px-3 py-2 text-xs font-bold leading-relaxed text-danger">
+                          <span className="soft-pulse h-1.5 w-1.5 shrink-0 rounded-pill bg-current" aria-hidden="true" />
+                          {t('overdueBadge', { duration: fmtDuration(intervalToMs(c.overdue_by)), milestone: milestone(c.next_milestone) })}
+                        </span>
+                      ) : c.next_due ? (
+                        <span className="block text-xs leading-relaxed text-muted">
+                          {t('dueLine', { milestone: milestone(c.next_milestone), date: fmtDateTime(c.next_due) })}
+                        </span>
+                      ) : (
+                        <span className="block text-xs font-semibold text-success">{t('noSla')}</span>
                       )}
                     </div>
-                    {c.is_overdue ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-pill bg-danger px-3 py-1.5 text-xs font-bold text-white dark:text-[#2a0d0b]">
-                        <span className="soft-pulse h-1.5 w-1.5 rounded-pill bg-current" aria-hidden="true" />
-                        {t('overdueBadge', { duration: fmtDuration(intervalToMs(c.overdue_by)), milestone: milestone(c.next_milestone) })}
-                      </span>
-                    ) : c.next_due ? (
-                      <span className="text-xs text-muted">
-                        {t('dueLine', { milestone: milestone(c.next_milestone), date: fmtDateTime(c.next_due) })}
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-success">{t('noSla')}</span>
-                    )}
+                    <div className="border-t border-border/70 pt-3 sm:border-t-0 sm:border-s sm:ps-5 sm:pt-0">
+                      <Link
+                        href={`/navigator/case/${c.id}`}
+                        className="btn btn-outline w-full text-sm text-primary sm:w-auto"
+                      >
+                        {t('openCase')}
+                        <svg className="shrink-0 rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </Link>
+                    </div>
                   </div>
-                  <Link
-                    href={`/navigator/case/${c.id}`}
-                    className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
-                  >
-                    {t('openCase')}
-                  </Link>
                 </motion.li>
               ))}
             </AnimatePresence>
@@ -217,6 +241,7 @@ export default function NavigatorConsole() {
           )}
         </>
       )}
+      </section>
     </div>
   );
 }

@@ -52,7 +52,7 @@ export function PrefsForm({
         type="time"
         value={draft[key]}
         onChange={(e) => set(key, e.target.value)}
-        className="input mt-1 w-full"
+        className="input mt-2 w-full text-base tabular-nums"
       />
     </label>
   );
@@ -72,24 +72,30 @@ export function PrefsForm({
         max={max}
         value={draft[key]}
         onChange={(e) => set(key, Number(e.target.value))}
-        className="input mt-1 w-full"
+        className="input mt-2 w-full text-base tabular-nums"
       />
     </label>
   );
 
   return (
-    <section className="card p-6">
-      <h2 className="font-bold">{t('prefsTitle')}</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {timeField('remindAt', t('remindAt'))}
-        {numField('maxPerDay', t('maxPerDay'), 1, 10)}
-        {timeField('quietStart', t('quietStart'))}
-        {timeField('quietEnd', t('quietEnd'))}
-        {numField('snoozeMinutes', t('snoozeMinutes'), 5, 240)}
-        {numField('ladderGapMinutes', t('ladderGap'), 15, 1440)}
-        {numField('ladderMissLimit', t('ladderMissLimit'), 2, 7)}
+    <section className="data-panel p-6 sm:p-7">
+      <h2 className="section-heading">{t('prefsTitle')}</h2>
+      <div className="mt-6 space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {timeField('remindAt', t('remindAt'))}
+          {numField('maxPerDay', t('maxPerDay'), 1, 10)}
+        </div>
+        <div className="grid gap-4 border-t border-border pt-5 sm:grid-cols-2">
+          {timeField('quietStart', t('quietStart'))}
+          {timeField('quietEnd', t('quietEnd'))}
+        </div>
+        <div className="grid gap-4 border-t border-border pt-5 sm:grid-cols-2">
+          {numField('snoozeMinutes', t('snoozeMinutes'), 5, 240)}
+          {numField('ladderGapMinutes', t('ladderGap'), 15, 1440)}
+          {numField('ladderMissLimit', t('ladderMissLimit'), 2, 7)}
+        </div>
       </div>
-      <div className="mt-4 flex items-start justify-between gap-4">
+      <div className="mt-6 flex items-start justify-between gap-4 rounded-btn bg-surface-2/60 p-4">
         <div>
           <p className="text-sm font-medium">{t('vibration')}</p>
           <p className="mt-0.5 text-xs text-muted">{t('vibrationHint')}</p>
@@ -100,12 +106,13 @@ export function PrefsForm({
           aria-checked={draft.vibration}
           aria-label={t('vibration')}
           onClick={() => set('vibration', !draft.vibration)}
-          className={`relative mt-1 h-8 w-[52px] shrink-0 rounded-pill transition-colors duration-250 ${
+          className={`relative h-11 w-16 shrink-0 rounded-pill transition-colors duration-250 motion-reduce:transition-none ${
             draft.vibration ? 'bg-primary' : 'bg-border'
           }`}
         >
           <span
-            className={`absolute start-1 top-1 h-6 w-6 rounded-pill bg-white shadow-1 transition-transform duration-250 ${
+            aria-hidden="true"
+            className={`absolute start-1.5 top-1.5 h-8 w-8 rounded-pill bg-primary-foreground shadow-1 transition-transform duration-250 motion-reduce:transition-none ${
               draft.vibration ? 'translate-x-[20px] rtl:-translate-x-[20px]' : ''
             }`}
           />

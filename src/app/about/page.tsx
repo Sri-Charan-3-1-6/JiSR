@@ -48,13 +48,13 @@ const LIMITS = ['limit1', 'limit2', 'limit3', 'limit4', 'limit5', 'limit6', 'lim
 export default async function AboutPage() {
   const t = await getTranslations('about');
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <section className="card p-6 sm:p-8" style={{ background: 'var(--gradient-soft), var(--card)' }}>
+    <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
+      <section className="surface-hero p-6 sm:p-10">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="primary">{t('challenge')}</Badge>
           <SyntheticBadge />
         </div>
-        <h1 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('title')}</h1>
+        <h1 className="page-heading mt-5">{t('title')}</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">{t('intro')}</p>
         <p className="mt-3 rounded-btn border border-primary/25 bg-primary/5 p-3 text-sm leading-relaxed">
           {t('llmNote')}

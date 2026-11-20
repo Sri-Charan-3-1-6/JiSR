@@ -7,29 +7,29 @@
    Raw tokens use non-Tailwind names; @theme maps them to utility namespaces.
 --------------------------------------------------------------------------- */
 :root {
-  --background: #f4f7f7;
-  --foreground: #16282a;
-  --card: #ffffff;
-  --surface-2: #edf3f3;
-  --primary: #0e7c74;
-  --primary-strong: #0a5f59;
+  --background: #f7f5ef;
+  --foreground: #20362f;
+  --card: #fffefa;
+  --surface-2: #efeee6;
+  --primary: #246454;
+  --primary-strong: #194c3e;
   --primary-foreground: #ffffff;
-  --accent: #5b5bd6;
-  --muted: #4f6a6c;
-  --border: #dbe6e6;
+  --accent: #a45332;
+  --muted: #5e6a61;
+  --border: #dedfd4;
   --danger: #b42318;
   --danger-soft: #fdecea;
   --warning: #9a5b00;
   --warning-soft: #fdf3e0;
   --success: #177a4c;
   --success-soft: #e5f5ec;
-  --ring: #0e7c74;
+  --ring: #246454;
 
-  --gradient-brand: linear-gradient(135deg, #0e7c74 0%, #3b6fb0 55%, #5b5bd6 100%);
-  --gradient-soft: linear-gradient(135deg, rgba(14, 124, 116, 0.08), rgba(91, 91, 214, 0.08));
+  --gradient-brand: linear-gradient(135deg, #246454, #5b7660 65%, #a45332);
+  --gradient-soft: linear-gradient(125deg, color-mix(in srgb, var(--primary) 7%, transparent), color-mix(in srgb, var(--accent) 4%, transparent));
 
-  --r-card: 20px;
-  --r-btn: 14px;
+  --r-card: 24px;
+  --r-btn: 12px;
   --r-sm: 10px;
   --r-pill: 999px;
 
@@ -46,26 +46,26 @@
 }
 
 html[data-theme="dark"] {
-  --background: #0d1517;
-  --foreground: #e6efef;
-  --card: #142023;
-  --surface-2: #1b2b2f;
-  --primary: #2fbfae;
-  --primary-strong: #57d4c5;
-  --primary-foreground: #06201d;
-  --accent: #9d9df5;
-  --muted: #9db4b6;
-  --border: #27393d;
+  --background: #101b17;
+  --foreground: #eef1e8;
+  --card: #182720;
+  --surface-2: #22332b;
+  --primary: #91cbb0;
+  --primary-strong: #b1ddc5;
+  --primary-foreground: #12291f;
+  --accent: #e5a37d;
+  --muted: #afbbb0;
+  --border: #35473c;
   --danger: #f2726b;
   --danger-soft: #3a1d1c;
   --warning: #e0a63a;
   --warning-soft: #33270f;
   --success: #4cc38a;
   --success-soft: #12291d;
-  --ring: #2fbfae;
+  --ring: #91cbb0;
 
-  --gradient-brand: linear-gradient(135deg, #2fbfae 0%, #6ea8e8 55%, #9d9df5 100%);
-  --gradient-soft: linear-gradient(135deg, rgba(47, 191, 174, 0.1), rgba(157, 157, 245, 0.1));
+  --gradient-brand: linear-gradient(135deg, #91cbb0, #b1c497 65%, #e5a37d);
+  --gradient-soft: linear-gradient(125deg, color-mix(in srgb, var(--primary) 9%, transparent), color-mix(in srgb, var(--accent) 5%, transparent));
 
   --elev-1: 0 1px 2px rgba(0, 0, 0, 0.35);
   --elev-2: 0 4px 16px -4px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -129,6 +129,118 @@ html[lang="hi"] body {
 /* Component classes live in the components layer so Tailwind utilities
    (p-0, w-auto, rounded-pill, bg-*, border-*) can override them. */
 @layer components {
+.page-heading {
+  font-size: clamp(1.65rem, 2.8vw, 2.5rem);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.section-heading {
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.eyebrow {
+  color: var(--primary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.surface-hero {
+  position: relative;
+  background: var(--gradient-soft), var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+.data-panel {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 1.25rem;
+}
+.timeline-item {
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid color-mix(in srgb, var(--primary) 55%, var(--border));
+  border-radius: var(--r-btn);
+  background: var(--card);
+  padding: 1rem;
+}
+.feature-link {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 64px;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  background: var(--card);
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.feature-link:hover {
+  background: var(--surface-2);
+  border-color: var(--primary);
+}
+.resident-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+.workspace-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.display-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.75rem, 5.2vw, 5rem);
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+html[lang="ar"] .display-title {
+  font-family: var(--font-arabic), sans-serif;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+html[lang="hi"] .display-title {
+  font-family: var(--font-devanagari), sans-serif;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+.bridge-scene {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 44% 44% var(--r-card) var(--r-card);
+}
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 100;
+  transform: translateY(-160%);
+  border-radius: var(--r-btn);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+@media (min-width: 1024px) {
+  .resident-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .data-panel { padding: 1.5rem; }
+}
 /* Cards ------------------------------------------------------------------ */
 .card {
   background: var(--card);

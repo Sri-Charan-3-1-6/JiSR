@@ -60,14 +60,17 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <div className="mb-5">
-        <div className="flex justify-between text-xs font-medium text-muted">
-          <span>{instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7'} · {t('lastTwoWeeks')}</span>
-          <span className="tabular-nums">{Math.min(step + 1, totalSteps)} / {totalSteps}</span>
+    <div className="mx-auto max-w-2xl">
+      <header className="mb-6 border-b border-border pb-6 sm:mb-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="eyebrow text-primary">{instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7'}</p>
+            <p className="mt-2 text-sm text-muted">{t('lastTwoWeeks')}</p>
+          </div>
+          <span className="rounded-pill border border-border bg-card px-4 py-2 text-sm font-semibold tabular-nums text-primary-strong">{Math.min(step + 1, totalSteps)} / {totalSteps}</span>
         </div>
         <div
-          className="mt-2 h-2 overflow-hidden rounded-pill bg-surface-2"
+          className="mt-5 h-1.5 overflow-hidden rounded-pill bg-border"
           role="progressbar"
           aria-valuenow={progress}
           aria-valuemin={0}
@@ -81,7 +84,7 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
             transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
-      </div>
+      </header>
 
       <AnimatePresence mode="wait" initial={false}>
         {step < items.length ? (
@@ -91,10 +94,10 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="card p-6 sm:p-8"
+            className="data-panel p-6 sm:p-10"
           >
-            <h1 className="text-xl font-bold leading-snug">{t(`${itemKey}.items.${step}`)}</h1>
-            <div className="mt-6 grid gap-3">
+            <h1 className="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">{t(`${itemKey}.items.${step}`)}</h1>
+            <div className="mt-8 grid gap-3">
               {ANSWER_OPTIONS.map((opt, i) => (
                 <motion.button
                   key={opt.value}
@@ -103,9 +106,11 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
                   transition={{ duration: 0.2, delay: 0.05 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
                   whileTap={reduce ? undefined : { scale: 0.97 }}
                   onClick={() => answer(opt.value)}
-                  className="btn btn-outline w-full justify-start text-start text-base"
+                  className="btn btn-outline group min-h-20 w-full justify-start gap-4 px-5 py-4 text-start text-base hover:border-primary focus-visible:border-primary sm:text-lg"
                 >
-                  {t(`answers.${opt.value}`)}
+                  <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-surface-2 text-sm font-medium tabular-nums text-muted group-hover:bg-primary/10 group-hover:text-primary">{i + 1}</span>
+                  <span className="flex-1">{t(`answers.${opt.value}`)}</span>
+                  <span aria-hidden="true" className="h-5 w-5 shrink-0 rounded-pill border border-border group-hover:border-primary group-hover:bg-primary/10 group-focus-visible:border-primary" />
                 </motion.button>
               ))}
             </div>
@@ -125,11 +130,12 @@ export default function ScreenClient({ instrument: raw }: { instrument: string }
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="card p-6 sm:p-8"
+            className="data-panel p-6 sm:p-10"
           >
-            <h1 className="text-xl font-bold">{t('freeTextTitle')}</h1>
+            <h1 id="screen-free-text-title" className="section-heading">{t('freeTextTitle')}</h1>
             <p className="mt-2 text-sm text-muted">{t('freeTextHint')}</p>
             <textarea
+              aria-labelledby="screen-free-text-title"
               value={freeText}
               onChange={(e) => setFreeText(e.target.value)}
               rows={4}

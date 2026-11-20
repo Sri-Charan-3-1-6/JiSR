@@ -24,7 +24,7 @@ export function RoleSwitcher() {
   return (
     <nav
       aria-label="Role switcher"
-      className="flex min-w-0 max-w-full gap-0.5 overflow-x-auto rounded-pill border border-border bg-surface-2 p-1"
+      className="grid min-w-0 grid-cols-4 gap-0.5 rounded-pill border border-border bg-surface-2 p-1 xl:flex"
     >
       {PORTALS.map((p) => {
         const active = pathname.startsWith(p.href);
@@ -33,7 +33,7 @@ export function RoleSwitcher() {
             key={p.href}
             href={p.href}
             aria-current={active ? 'page' : undefined}
-            className={`relative whitespace-nowrap rounded-pill px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
+            className={`relative flex min-h-9 items-center justify-center rounded-pill px-1 text-center text-xs font-semibold transition-colors duration-150 sm:px-4 sm:text-sm ${
               active ? 'text-primary-foreground' : 'text-muted hover:text-foreground'
             }`}
           >
@@ -54,11 +54,7 @@ export function RoleSwitcher() {
 
 export function SyntheticBadge() {
   const t = useTranslations('common');
-  return (
-    <Badge tone="warning" className="whitespace-nowrap">
-      {t('syntheticBadge')}
-    </Badge>
-  );
+  return <Badge tone="warning" className="whitespace-nowrap">{t('syntheticBadge')}</Badge>;
 }
 
 export function Header() {
@@ -66,28 +62,26 @@ export function Header() {
   const td = useTranslations('demo');
   const demo = useDemo();
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="JISR">
-          <BridgeArc size={30} />
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 px-4 py-2 sm:px-6 xl:grid-cols-[1fr_auto_1fr]">
+        <Link href="/" className="col-start-1 row-start-1 flex w-fit items-center gap-2.5" aria-label="JISR">
+          <BridgeArc size={32} />
           <span className="flex flex-col leading-tight">
-            <span className="text-lg font-extrabold tracking-tight">JISR</span>
+            <span className="text-xl font-bold tracking-[0.06em]">JISR</span>
             <span className="hidden text-[11px] font-medium text-muted sm:block">{t('tagline')}</span>
           </span>
         </Link>
-        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+        <div className="col-span-2 row-start-2 min-w-0 xl:col-span-1 xl:col-start-2 xl:row-start-1">
           <RoleSwitcher />
+        </div>
+        <div className="col-start-2 row-start-1 flex items-center justify-end gap-1.5 xl:col-start-3">
           <LanguageSwitcher />
           <ThemeToggle />
-          <span className="hidden items-center gap-2 md:inline-flex">
-            {demo.active && <Badge tone="accent">{td('badge')}</Badge>}
-            <SyntheticBadge />
-          </span>
         </div>
-        <span className="inline-flex items-center gap-2 md:hidden">
+        <div className="col-span-2 flex items-center justify-center gap-2 xl:col-span-3">
           {demo.active && <Badge tone="accent">{td('badge')}</Badge>}
           <SyntheticBadge />
-        </span>
+        </div>
       </div>
     </header>
   );

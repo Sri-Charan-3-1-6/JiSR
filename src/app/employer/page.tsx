@@ -30,24 +30,25 @@ function CountTable({ title, labels, rows }: {
   const byValue = new Map(rows.map((r) => [r.group_value, r.resident_count]));
   const max = Math.max(1, ...rows.map((r) => Number(r.resident_count)));
   return (
-    <div className="card p-4">
-      <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{title}</h2>
-      <table className="mt-2 w-full text-sm">
+    <div className="data-panel card min-w-0 p-4 sm:p-5">
+      <h2 className="section-heading border-b border-border/70 pb-4 text-base font-bold text-foreground">{title}</h2>
+      <div className="mt-3 min-w-0 max-w-full overflow-x-auto">
+      <table className="w-full min-w-[180px] text-sm">
         <thead>
           <tr className="border-b border-border text-xs text-muted">
-            <th className="py-1.5 text-start">{t('group')}</th>
-            <th className="py-1.5 text-end">{t('residents')}</th>
+            <th className="py-2 pe-3 text-start font-medium">{t('group')}</th>
+            <th className="py-2 text-end font-medium">{t('residents')}</th>
           </tr>
         </thead>
         <tbody>
           {labels.map((l, i) => {
             const count = byValue.get(l.value);
             return (
-              <tr key={l.value} className="border-b border-border/60">
-                <td className="py-2">
+              <tr key={l.value} className="border-b border-border/60 last:border-b-0">
+                <td className="py-3 pe-4 font-medium">
                   {l.label}
                   {count !== undefined && (
-                    <div className="mt-1 h-1 w-full overflow-hidden rounded-pill bg-surface-2">
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-pill bg-surface-2">
                       <div
                         className="bar-grow h-full w-full origin-left rounded-pill bg-primary/70 rtl:origin-right"
                         style={{ transform: `scaleX(${Number(count) / max})`, animationDelay: `${i * 50}ms` }}
@@ -55,9 +56,9 @@ function CountTable({ title, labels, rows }: {
                     </div>
                   )}
                 </td>
-                <td className="py-2 text-end font-mono align-top">
+                <td className="py-3 text-end align-top font-mono font-semibold tabular-nums">
                   {count === undefined ? (
-                    <span className="text-muted" title={t('suppressedTitle')} dir="ltr">
+                    <span className="inline-flex rounded-sm border border-border bg-surface-2 px-2 py-1 text-xs text-muted" title={t('suppressedTitle')} dir="ltr">
                       &lt;10
                     </span>
                   ) : (
@@ -69,6 +70,7 @@ function CountTable({ title, labels, rows }: {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -104,11 +106,11 @@ export default function EmployerPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <section className="card p-6" style={{ background: 'var(--gradient-soft), var(--card)' }}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-          <div className="flex items-center gap-2">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
+      <section className="surface-hero min-w-0 p-5 sm:p-7">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h1 className="page-heading text-3xl font-bold tracking-tight sm:text-4xl">{t('title')}</h1>
+          <div className="flex flex-wrap items-center gap-2">
             <SyntheticBadge />
             <button
               onClick={() => setInfoOpen(true)}
@@ -122,10 +124,14 @@ export default function EmployerPage() {
             </button>
           </div>
         </div>
-        <p className="mt-3 rounded-btn border border-primary/25 bg-primary/10 p-3 text-sm font-semibold text-primary-strong">
-          {t('banner')}
-        </p>
-        <p className="mt-3 text-sm text-muted">{t('note')}</p>
+        <div className="mt-5 flex items-start gap-3 rounded-btn border border-primary/20 bg-primary/5 p-4">
+          <svg className="mt-0.5 shrink-0 text-primary" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3 4 6v6c0 4.5 4.5 7.5 8 9 3.5-1.5 8-4.5 8-9V6l-8-3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+            <path d="m8.5 12 2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="text-sm font-semibold leading-relaxed text-primary-strong">{t('banner')}</p>
+        </div>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">{t('note')}</p>
       </section>
 
       <Modal open={infoOpen} onClose={() => setInfoOpen(false)} title={t('suppressedTitle')} closeLabel={tc('close')}>
@@ -134,7 +140,7 @@ export default function EmployerPage() {
       </Modal>
 
       {loading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid min-w-0 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <span className="sr-only">{t('loading')}</span>
           {Array.from({ length: 4 }, (_, i) => (
             <SkeletonCard key={i} lines={5} />
@@ -146,7 +152,7 @@ export default function EmployerPage() {
         </section>
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-3">
+          <section className="grid min-w-0 grid-cols-2 items-stretch gap-3 sm:gap-4 [&>div]:min-w-0 [&>div]:h-full [&>div]:p-4 sm:[&>div]:p-6">
             <Stat
               label={t('screeningsTotal')}
               value={totals?.screenings_total ?? '—'}
@@ -159,7 +165,7 @@ export default function EmployerPage() {
               hint={t('suppressedNotCounted')}
             />
           </section>
-          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <section className="grid min-w-0 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <CountTable
               title={t('byLanguage')}
               labels={LANGUAGES.map((v) => ({ value: v, label: t(`languages.${v}`) }))}

@@ -18,8 +18,8 @@ export default async function ResidentLayout({ children }: { children: React.Rea
   ];
   return (
     <div className="pb-16 md:pb-0">
-      {children}
       <BottomNav items={items} />
+      {children}
     </div>
   );
 }

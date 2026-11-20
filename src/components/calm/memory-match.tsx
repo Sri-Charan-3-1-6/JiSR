@@ -34,9 +34,9 @@ export function MemoryMatch({ onDone }: { onDone: (seconds: number, completed: b
   const startedAt = useRef<number | null>(null);
   const lock = useRef(false);
 
-  function flip(i: number) {
+  function flip(i: number, now: number) {
     if (lock.current || flipped.includes(i) || matched.has(i)) return;
-    if (startedAt.current === null) startedAt.current = Date.now();
+    if (startedAt.current === null) startedAt.current = now;
     const next = [...flipped, i];
     setFlipped(next);
     if (next.length === 2) {
@@ -51,7 +51,7 @@ export function MemoryMatch({ onDone }: { onDone: (seconds: number, completed: b
         setFlipped([]);
         lock.current = false;
         if (nm.size === deck.length) {
-          const secs = Math.max(1, Math.round((Date.now() - startedAt.current!) / 1000));
+          const secs = Math.max(1, Math.round((now - startedAt.current!) / 1000));
           onDone(secs, true);
         }
       } else {
@@ -83,7 +83,7 @@ export function MemoryMatch({ onDone }: { onDone: (seconds: number, completed: b
             <button
               key={`${i}-${symbol}`}
               type="button"
-              onClick={() => flip(i)}
+              onClick={(event) => flip(i, event.timeStamp)}
               aria-label={open ? symbol : `card ${i + 1}`}
               aria-pressed={open}
               className="relative aspect-square"

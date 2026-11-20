@@ -1,6 +1,6 @@
 /* JISR app-shell service worker: offline shell + immutable static assets.
    Live /api/ data is never cached. */
-const CACHE = 'jisr-shell-v1';
+const CACHE = 'jisr-shell-v2';
 const SHELL = [
   '/',
   '/about',

@@ -1,13 +1,36 @@
 'use client';
 
+import { useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RiskTier } from '@/lib/matching';
 
+const getServerResidentId = () => undefined;
+
+export function useResidentId() {
+  const [store] = useState(() => {
+    let residentId: string | null | undefined;
+    return {
+      getSnapshot: () => {
+        if (residentId === undefined) residentId = localStorage.getItem('jisr_resident_id') || null;
+        return residentId;
+      },
+      subscribe: () => {
+        // Activity can read snapshots while hidden, so reactivation must invalidate them too.
+        residentId = undefined;
+        return () => { residentId = undefined; };
+      },
+    };
+  });
+  return useSyncExternalStore<string | null | undefined>(
+    store.subscribe, store.getSnapshot, getServerResidentId,
+  );
+}
+
 const TIER_CLASSES: Record<RiskTier, string> = {
   minimal: 'bg-success-soft text-success border-success/30',
-  mild: 'bg-lime-100 text-lime-900 border-lime-300 dark:bg-lime-950 dark:text-lime-200 dark:border-lime-800',
+  mild: 'bg-primary/10 text-primary-strong border-primary/30',
   moderate: 'bg-warning-soft text-warning border-warning/30',
-  moderately_severe: 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-950 dark:text-orange-200 dark:border-orange-800',
+  moderately_severe: 'bg-accent/10 text-accent border-accent/30',
   severe: 'bg-danger-soft text-danger border-danger/30',
   crisis: 'bg-danger text-white border-danger dark:text-[#2a0d0b]',
 };

@@ -30,9 +30,9 @@ export function PortalShell({
   const pathname = usePathname();
   const reduce = useReducedMotion();
   return (
-    <div className="mx-auto flex w-full max-w-7xl gap-6">
-      <aside className="sticky top-24 hidden h-fit w-56 shrink-0 lg:block" aria-label="Portal">
-        <nav className="card p-3">
+    <div className="mx-auto flex w-full max-w-7xl gap-8">
+      <aside className="sticky top-40 hidden h-fit w-52 shrink-0 lg:block" aria-label="Portal">
+        <nav className="rounded-card border border-border bg-card p-3 shadow-1">
           <ul className="space-y-1">
             {items.map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + '/');

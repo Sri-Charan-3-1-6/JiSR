@@ -67,9 +67,9 @@ export function Stat({
   format?: (n: number) => string;
 }) {
   return (
-    <div className={`card p-4 ${alert ? 'border-danger/50' : ''}`}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold ${alert ? 'text-danger' : ''}`}>
+    <div className={`card flex h-full flex-col p-5 ${alert ? 'border-danger/50 bg-danger-soft/30' : ''}`}>
+      <p className="text-xs font-medium leading-5 text-muted">{label}</p>
+      <p className={`mt-3 text-3xl font-semibold tracking-tight ${alert ? 'text-danger' : ''}`}>
         {numericValue !== undefined ? (
           <CountUp value={numericValue} format={format} />
         ) : (

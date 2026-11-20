@@ -52,6 +52,7 @@ test('Layer 5 golden path: reminders, ladder, trusted contact, calm, companion c
   await createCheckin(request, id!, now, 1);
   await page.goto('/resident/checkin');
   await page.getByRole('button', { name: 'Check for reminders now' }).click();
+  await page.getByRole('button', { name: 'Check for reminders now' }).waitFor();
   await expect(page.getByText('Skipped — quiet hours').first()).toBeVisible();
 
   // Quiet window away: a reminder lands in the center; mark read, snooze, complete.
@@ -62,6 +63,7 @@ test('Layer 5 golden path: reminders, ladder, trusted contact, calm, companion c
   await page.getByRole('button', { name: 'Save schedule' }).click();
   await expect(page.getByText('Schedule saved')).toBeVisible();
   await page.getByRole('button', { name: 'Check for reminders now' }).click();
+  await page.getByRole('button', { name: 'Check for reminders now' }).waitFor();
   await expect(page.getByText('Reminder', { exact: true }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Mark read' }).first().click();
   await page.getByRole('button', { name: 'Snooze' }).first().click();

@@ -239,11 +239,26 @@ export default function HealthSystemPage() {
     return { simRows, baseMatch, baseBooked, simMatch, simBooked };
   }, [fairness, metrics, langOutreach, flexSlots]);
 
+  const heading = (
+    <section className="surface-hero min-w-0 p-5 sm:p-7">
+      <h1 className="page-heading text-3xl font-bold tracking-tight sm:text-4xl">{t('title')}</h1>
+      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">
+        {t('intro', { n: residentsTotal ?? '     ' })}
+      </p>
+      <Link href="/employer" className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+        {t('employerLink')}
+        <svg className="shrink-0 rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+    </section>
+  );
+
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-6 sm:space-y-8">
+        {heading}
         <span className="sr-only">{t('loading')}</span>
-        <SkeletonCard lines={2} />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (
             <div key={i} className="skeleton h-24" />
@@ -255,8 +270,11 @@ export default function HealthSystemPage() {
   }
   if (error || !metrics) {
     return (
-      <div role="alert" className="card border-danger/50 p-6 text-sm text-danger">
-        {error ?? t('error')}
+      <div className="min-w-0 space-y-6 sm:space-y-8">
+        {heading}
+        <div role="alert" className="card border-danger/50 p-6 text-sm text-danger">
+          {error ?? t('error')}
+        </div>
       </div>
     );
   }
@@ -265,19 +283,10 @@ export default function HealthSystemPage() {
     simulation?.simRows.map((r) => ({ group: r.group, current: r.m, simulated: r.simM })) ?? [];
 
   return (
-    <div className="space-y-6">
-      <section className="card p-6" style={{ background: 'var(--gradient-soft), var(--card)' }}>
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 text-sm text-muted">
-          {/* Figure-space placeholder keeps the box width stable so LCP paints with the shell, not after the fetch. */}
-          {t('intro', { n: residentsTotal ?? '     ' })}
-        </p>
-        <Link href="/employer" className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline">
-          {t('employerLink')}
-        </Link>
-      </section>
+    <div className="min-w-0 space-y-6 sm:space-y-8">
+      {heading}
 
-      <section aria-label="Pathway metrics" className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section aria-label="Pathway metrics" className="grid min-w-0 grid-cols-2 items-stretch gap-3 md:grid-cols-4 [&>div]:min-w-0 [&>div]:h-full [&>div]:p-4 xl:[&>div]:p-5">
         <Stat
           label={t('screenToMatch')}
           value={pct(metrics.screen_to_match_rate)}
@@ -358,11 +367,16 @@ export default function HealthSystemPage() {
         {moreMetrics ? t('showFewerMetrics') : t('showMoreMetrics')}
       </button>
 
-      <section className="card p-6">
-        <h2 className="font-bold">{t('fairnessTitle')}</h2>
-        <p className="mt-1 text-sm text-muted">{t('fairnessNote')}</p>
+      <section className="data-panel card min-w-0 p-4 sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-primary/15 bg-primary/5 font-mono text-xs text-primary" aria-hidden="true">01</span>
+          <div className="min-w-0">
+            <h2 className="section-heading font-bold">{t('fairnessTitle')}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted">{t('fairnessNote')}</p>
+          </div>
+        </div>
         <div className="mt-4">
-          <div className="overflow-x-auto">
+          <div className="min-w-0 max-w-full overflow-x-auto">
             <Tabs
               tabs={dimensions.map((d) => ({ value: d.dim, label: t(`dimensions.${d.dim}`) }))}
               active={activeDim?.dim ?? 'language'}
@@ -371,17 +385,17 @@ export default function HealthSystemPage() {
             />
           </div>
           {activeDim && (
-            <div className="mt-3 overflow-x-auto">
-                <table className="w-full min-w-[480px] text-sm md:min-w-[640px]">
+            <div className="mt-4 min-w-0 max-w-full overflow-x-auto rounded-btn border border-border">
+                <table className="w-full min-w-[480px] text-sm md:min-w-[640px] [&_th]:align-top [&_td]:align-top">
                   <thead>
-                    <tr className="border-b border-border text-start text-xs text-muted">
-                      <th className="py-2 pe-3 text-start">{t('group')}</th>
-                      <th className="py-2 pe-3 text-start">{t('n')}</th>
-                      <th className="py-2 pe-3 text-start">{t('screenToMatch')}</th>
-                      {wide && <th className="py-2 pe-3 text-start">{t('matchToBooked')}</th>}
-                      {wide && <th className="py-2 pe-3 text-start">{t('bookedToAttended')}</th>}
-                      {wide && <th className="py-2 pe-3 text-start">{t('medianWait')}</th>}
-                      <th className="py-2 text-start">{t('gapFlag')}</th>
+                    <tr className="border-b border-border bg-surface-2/70 text-start text-xs text-muted">
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('group')}</th>
+                      <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('n')}</th>
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('screenToMatch')}</th>
+                      {wide && <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('matchToBooked')}</th>}
+                      {wide && <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('bookedToAttended')}</th>}
+                      {wide && <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('medianWait')}</th>}
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('gapFlag')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -399,9 +413,9 @@ export default function HealthSystemPage() {
                               : undefined
                         }
                       >
-                        <td className="py-2.5 pe-3 font-semibold">{r.group_value}</td>
-                        <td className="py-2.5 pe-3 tabular-nums">{r.n}</td>
-                        <td className="py-2.5 pe-3">
+                        <td className="px-4 py-4 font-semibold">{r.group_value}</td>
+                        <td className="px-4 py-4 text-end tabular-nums">{r.n}</td>
+                        <td className="px-4 py-4">
                           <span className="tabular-nums">{pct(r.screen_to_match)}</span>
                           <span className="ms-1 text-xs text-muted">
                             ({t('best', { value: pct(r.best_screen_to_match) })})
@@ -413,10 +427,10 @@ export default function HealthSystemPage() {
                             />
                           </div>
                         </td>
-                        {wide && <td className="py-2.5 pe-3 tabular-nums">{pct(r.match_to_booked_sla)}</td>}
-                        {wide && <td className="py-2.5 pe-3 tabular-nums">{pct(r.booked_to_attended)}</td>}
-                        {wide && <td className="py-2.5 pe-3 tabular-nums">{days(r.median_waiting_days)}</td>}
-                        <td className="py-2.5">
+                        {wide && <td className="px-4 py-4 text-end tabular-nums">{pct(r.match_to_booked_sla)}</td>}
+                        {wide && <td className="px-4 py-4 text-end tabular-nums">{pct(r.booked_to_attended)}</td>}
+                        {wide && <td className="px-4 py-4 text-end tabular-nums">{days(r.median_waiting_days)}</td>}
+                        <td className="px-4 py-4">
                           <span className="flex flex-wrap gap-1">
                             {r.is_gap && <Badge tone="danger">{t('gapMatch')}</Badge>}
                             {r.is_gap_booked && <Badge tone="warning">{t('gapBook')}</Badge>}
@@ -431,13 +445,13 @@ export default function HealthSystemPage() {
                       .filter((s) => s.dimension === activeDim.dim)
                       .map((s) => (
                         <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
-                          <td className="py-2.5 pe-3 font-semibold">{s.group_value}</td>
-                          <td className="py-2.5 pe-3" title={t('suppressedTitle')}><span dir="ltr">&lt;10</span></td>
-                          <td className="py-2.5 pe-3">—</td>
-                          {wide && <td className="py-2.5 pe-3">—</td>}
-                          {wide && <td className="py-2.5 pe-3">—</td>}
-                          {wide && <td className="py-2.5 pe-3">—</td>}
-                          <td className="py-2.5 text-xs">{t('hiddenPrivacy')}</td>
+                          <td className="px-4 py-4 font-semibold">{s.group_value}</td>
+                          <td className="px-4 py-4 text-end" title={t('suppressedTitle')}><span className="inline-flex rounded-sm border border-border bg-surface-2 px-2 py-1 font-mono text-xs font-semibold" dir="ltr">&lt;10</span></td>
+                          <td className="px-4 py-4">—</td>
+                          {wide && <td className="px-4 py-4 text-end">—</td>}
+                          {wide && <td className="px-4 py-4 text-end">—</td>}
+                          {wide && <td className="px-4 py-4 text-end">—</td>}
+                          <td className="px-4 py-4 text-xs font-medium leading-relaxed">{t('hiddenPrivacy')}</td>
                         </tr>
                       ))}
                   </tbody>
@@ -448,9 +462,12 @@ export default function HealthSystemPage() {
       </section>
 
       {checkin?.metrics && (
-        <section className="card p-6">
-          <h2 className="font-bold">{t('checkinTitle')}</h2>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="data-panel card min-w-0 p-4 sm:p-6">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-primary/15 bg-primary/5 font-mono text-xs text-primary" aria-hidden="true">02</span>
+            <h2 className="section-heading font-bold">{t('checkinTitle')}</h2>
+          </div>
+          <div className="mt-5 grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-3 [&>div]:min-w-0 [&>div]:h-full [&>div]:bg-surface-2/40 [&>div]:shadow-none">
             <Stat
               label={t('checkinCompletion')}
               value={pct(checkin.metrics.completion_rate)}
@@ -480,11 +497,16 @@ export default function HealthSystemPage() {
       )}
 
       {checkin && checkinDimensions.length > 0 && (
-        <section className="card p-6">
-          <h2 className="font-bold">{t('checkinFairnessTitle')}</h2>
-          <p className="mt-1 text-sm text-muted">{t('checkinFairnessNote')}</p>
+        <section className="data-panel card min-w-0 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-accent/20 bg-accent/5 font-mono text-xs text-accent" aria-hidden="true">03</span>
+            <div className="min-w-0">
+              <h2 className="section-heading font-bold">{t('checkinFairnessTitle')}</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted">{t('checkinFairnessNote')}</p>
+            </div>
+          </div>
           <div className="mt-4">
-            <div className="overflow-x-auto">
+            <div className="min-w-0 max-w-full overflow-x-auto">
               <Tabs
                 tabs={checkinDimensions.map((d) => ({ value: d.dim, label: t(`dimensions.${d.dim}`) }))}
                 active={activeCheckinDim?.dim ?? 'language'}
@@ -493,15 +515,15 @@ export default function HealthSystemPage() {
               />
             </div>
             {activeCheckinDim && (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full min-w-[480px] text-sm">
+              <div className="mt-4 min-w-0 max-w-full overflow-x-auto rounded-btn border border-border">
+                <table className="w-full min-w-[480px] text-sm [&_th]:align-top [&_td]:align-top">
                   <thead>
-                    <tr className="border-b border-border text-xs text-muted">
-                      <th className="py-2 pe-3 text-start">{t('group')}</th>
-                      <th className="py-2 pe-3 text-start">{t('n')}</th>
-                      <th className="py-2 pe-3 text-start">{t('checkinCompletion')}</th>
-                      {wide && <th className="py-2 pe-3 text-start">{t('reengageHours')}</th>}
-                      <th className="py-2 text-start">{t('gapFlag')}</th>
+                    <tr className="border-b border-border bg-surface-2/70 text-xs text-muted">
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('group')}</th>
+                      <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('n')}</th>
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('checkinCompletion')}</th>
+                      {wide && <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('reengageHours')}</th>}
+                      <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('gapFlag')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -511,9 +533,9 @@ export default function HealthSystemPage() {
                         className={`border-b border-border/60 transition-colors duration-150 hover:bg-surface-2/60 ${r.is_gap ? 'bg-danger-soft/40' : ''}`}
                         style={r.is_gap ? { borderInlineStart: '3px solid var(--danger)' } : undefined}
                       >
-                        <td className="py-2.5 pe-3 font-semibold">{r.group_value}</td>
-                        <td className="py-2.5 pe-3 tabular-nums">{r.n}</td>
-                        <td className="py-2.5 pe-3">
+                        <td className="px-4 py-4 font-semibold">{r.group_value}</td>
+                        <td className="px-4 py-4 text-end tabular-nums">{r.n}</td>
+                        <td className="px-4 py-4">
                           <span className="tabular-nums">{pct(r.completion_rate)}</span>
                           <span className="ms-1 text-xs text-muted">
                             ({t('best', { value: pct(r.best_completion_rate) })})
@@ -525,8 +547,8 @@ export default function HealthSystemPage() {
                             />
                           </div>
                         </td>
-                        {wide && <td className="py-2.5 pe-3 tabular-nums">{hrs(r.median_hours_to_reengage)}</td>}
-                        <td className="py-2.5">
+                        {wide && <td className="px-4 py-4 text-end tabular-nums">{hrs(r.median_hours_to_reengage)}</td>}
+                        <td className="px-4 py-4">
                           {r.is_gap ? <Badge tone="danger">{t('checkinGap')}</Badge> : <span className="text-xs text-muted">—</span>}
                         </td>
                       </tr>
@@ -535,11 +557,11 @@ export default function HealthSystemPage() {
                       .filter((s) => s.dimension === activeCheckinDim.dim)
                       .map((s) => (
                         <tr key={`sup-${s.group_value}`} className="border-b border-border/60 text-muted">
-                          <td className="py-2.5 pe-3 font-semibold">{s.group_value}</td>
-                          <td className="py-2.5 pe-3" title={t('suppressedTitle')}><span dir="ltr">&lt;10</span></td>
-                          <td className="py-2.5 pe-3">—</td>
-                          {wide && <td className="py-2.5 pe-3">—</td>}
-                          <td className="py-2.5 text-xs">{t('hiddenPrivacy')}</td>
+                          <td className="px-4 py-4 font-semibold">{s.group_value}</td>
+                          <td className="px-4 py-4 text-end" title={t('suppressedTitle')}><span className="inline-flex rounded-sm border border-border bg-surface-2 px-2 py-1 font-mono text-xs font-semibold" dir="ltr">&lt;10</span></td>
+                          <td className="px-4 py-4">—</td>
+                          {wide && <td className="px-4 py-4 text-end">—</td>}
+                          <td className="px-4 py-4 text-xs font-medium leading-relaxed">{t('hiddenPrivacy')}</td>
                         </tr>
                       ))}
                   </tbody>
@@ -551,12 +573,16 @@ export default function HealthSystemPage() {
       )}
 
       {checkin?.companion && (
-        <section className="card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-bold">{t('companionReportTitle')}</h2>
-            <Badge tone="neutral">{t('companionAggregateNote')}</Badge>
+        <section className="data-panel min-w-0 rounded-card border border-border bg-surface-2/50 p-4 sm:p-6">
+          <div className="grid min-w-0 items-center gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-primary/15 bg-card font-mono text-xs text-primary" aria-hidden="true">04</span>
+            <div className="min-w-0">
+              <h2 className="section-heading font-bold">{t('companionReportTitle')}</h2>
+              <div className="mt-3"><Badge tone="neutral">{t('companionAggregateNote')}</Badge></div>
+            </div>
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 [&>div]:min-w-0">
             <Stat
               label={t('companionHeavyShare')}
               value={pct(checkin.companion.heavy_share)}
@@ -568,13 +594,19 @@ export default function HealthSystemPage() {
               })}
             />
           </div>
+          </div>
         </section>
       )}
 
-      <section className="card p-6">
-        <h2 className="font-bold">{t('facultyTitle')}</h2>
-        <p className="mt-1 text-sm text-muted">{t('facultyHint')}</p>
-        <div className="mt-4 overflow-x-auto">
+      <section className="data-panel card min-w-0 p-4 sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-accent/20 bg-accent/5 font-mono text-xs text-accent" aria-hidden="true">05</span>
+          <div className="min-w-0">
+            <h2 className="section-heading font-bold">{t('facultyTitle')}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted">{t('facultyHint')}</p>
+          </div>
+        </div>
+        <div className="mt-4 min-w-0 max-w-full overflow-x-auto">
           <Tabs
             tabs={[
               { value: 'en', label: 'English' },
@@ -589,9 +621,9 @@ export default function HealthSystemPage() {
         {facultyLines.length === 0 ? (
           <p className="mt-3 text-sm text-muted">{t('facultyEmpty')}</p>
         ) : (
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-5 grid min-w-0 items-start gap-3 lg:grid-cols-2">
             {facultyLines.map((line) => (
-              <li key={line.id} className="rounded-btn border border-border bg-surface-2/50 p-3">
+              <li key={line.id} className="min-w-0 rounded-btn border border-border bg-surface-2/40 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={line.kind === 'joke' ? 'accent' : 'primary'}>
                     {line.kind === 'joke' ? t('lineJoke') : t('lineSupport')}
@@ -601,12 +633,12 @@ export default function HealthSystemPage() {
                     type="button"
                     onClick={() => toggleReviewed(line)}
                     disabled={facultyBusy === line.id}
-                    className="btn btn-ghost ms-auto px-3 py-1.5 text-xs"
+                    className="btn btn-outline ms-auto px-3 py-2 text-xs"
                   >
                     {line.reviewed ? t('markUnreviewed') : t('markReviewed')}
                   </button>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed" dir={line.language === 'ar' ? 'rtl' : 'ltr'}>
+                <p className="mt-3 break-words text-sm leading-relaxed" dir={line.language === 'ar' ? 'rtl' : 'ltr'}>
                   {line.body}
                 </p>
               </li>
@@ -615,31 +647,34 @@ export default function HealthSystemPage() {
         )}
       </section>
 
-      <section className="card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">{t('whatIfTitle')}</h2>
+      <section className="data-panel card min-w-0 border-warning/30 p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-warning/20 pb-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-warning/20 bg-warning-soft font-mono text-xs text-warning" aria-hidden="true">06</span>
+            <h2 className="section-heading font-bold">{t('whatIfTitle')}</h2>
+          </div>
           <Badge tone="warning">{t('simBadge')}</Badge>
         </div>
-        <p className="mt-1 text-sm text-muted">{t('whatIfIntro')}</p>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">{t('whatIfIntro')}</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className={`flex cursor-pointer items-start gap-3 rounded-btn border p-4 transition-colors duration-250 ${langOutreach ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+          <label className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-btn border p-4 transition-colors duration-250 hover:border-primary/40 ${langOutreach ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
             <input
               type="checkbox"
               checked={langOutreach}
               onChange={(e) => setLangOutreach(e.target.checked)}
-              className="mt-1 h-5 w-5 accent-(--primary)"
+              className="mt-1 h-5 w-5 shrink-0 accent-(--primary)"
             />
             <span>
               <span className="font-semibold">{t('interventionA')}</span>
               <span className="block text-xs leading-relaxed text-muted">{t('interventionADesc')}</span>
             </span>
           </label>
-          <label className={`flex cursor-pointer items-start gap-3 rounded-btn border p-4 transition-colors duration-250 ${flexSlots ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+          <label className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-btn border p-4 transition-colors duration-250 hover:border-primary/40 ${flexSlots ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
             <input
               type="checkbox"
               checked={flexSlots}
               onChange={(e) => setFlexSlots(e.target.checked)}
-              className="mt-1 h-5 w-5 accent-(--primary)"
+              className="mt-1 h-5 w-5 shrink-0 accent-(--primary)"
             />
             <span>
               <span className="font-semibold">{t('interventionB')}</span>
@@ -648,43 +683,43 @@ export default function HealthSystemPage() {
           </label>
         </div>
         {simulation && simReady && (
-          <div className="mt-5">
+          <div className="mt-5 min-w-0">
             <CompareChart
               rows={chartRows}
               currentLabel={t('now')}
               simulatedLabel={t('simulated')}
             />
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[480px] text-sm">
+            <div className="mt-4 min-w-0 max-w-full overflow-x-auto rounded-btn border border-border">
+              <table className="w-full min-w-[480px] text-sm [&_th]:align-top [&_td]:align-top">
                 <thead>
-                  <tr className="border-b border-border text-xs text-muted">
-                    <th className="py-2 pe-3 text-start">{t('languageGroup')}</th>
-                    <th className="py-2 pe-3 text-start">{t('screenToMatch')} ({t('now')})</th>
-                    <th className="py-2 pe-3 text-start">{t('screenToMatch')} ({t('simulated')})</th>
-                    <th className="py-2 pe-3 text-start">{t('matchToBooked')} ({t('now')})</th>
-                    <th className="py-2 text-start">{t('matchToBooked')} ({t('simulated')})</th>
+                  <tr className="border-b border-border bg-surface-2/70 text-xs text-muted">
+                    <th className="px-4 py-3 text-start font-semibold leading-relaxed">{t('languageGroup')}</th>
+                    <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('screenToMatch')} ({t('now')})</th>
+                    <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('screenToMatch')} ({t('simulated')})</th>
+                    <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('matchToBooked')} ({t('now')})</th>
+                    <th className="px-4 py-3 text-end font-semibold leading-relaxed">{t('matchToBooked')} ({t('simulated')})</th>
                   </tr>
                 </thead>
                 <tbody>
                   {simulation.simRows.map((r) => (
                     <tr key={r.group} className="border-b border-border/60">
-                      <td className="py-2.5 pe-3 font-semibold">{r.group}</td>
-                      <td className="py-2.5 pe-3 tabular-nums">{pct(r.m)}</td>
-                      <td className="py-2.5 pe-3"><AnimatedPct value={r.simM} active={langOutreach} /></td>
-                      <td className="py-2.5 pe-3 tabular-nums">{pct(r.b)}</td>
-                      <td className="py-2.5"><AnimatedPct value={r.simB} active={flexSlots} /></td>
+                      <td className="px-4 py-4 font-semibold">{r.group}</td>
+                      <td className="px-4 py-4 text-end tabular-nums">{pct(r.m)}</td>
+                      <td className="px-4 py-4 text-end tabular-nums"><AnimatedPct value={r.simM} active={langOutreach} /></td>
+                      <td className="px-4 py-4 text-end tabular-nums">{pct(r.b)}</td>
+                      <td className="px-4 py-4 text-end tabular-nums"><AnimatedPct value={r.simB} active={flexSlots} /></td>
                     </tr>
                   ))}
-                  <tr className="font-bold">
-                    <td className="py-2.5 pe-3">{t('overall')}</td>
-                    <td className="py-2.5 pe-3 tabular-nums">{pct(simulation.baseMatch)}</td>
-                    <td className="py-2.5 pe-3"><AnimatedPct value={simulation.simMatch} active={langOutreach} /></td>
-                    <td className="py-2.5 pe-3 tabular-nums">{pct(simulation.baseBooked)}</td>
-                    <td className="py-2.5"><AnimatedPct value={simulation.simBooked} active={flexSlots} /></td>
+                  <tr className="border-t-2 border-border bg-primary/5 font-bold">
+                    <td className="px-4 py-4">{t('overall')}</td>
+                    <td className="px-4 py-4 text-end tabular-nums">{pct(simulation.baseMatch)}</td>
+                    <td className="px-4 py-4 text-end tabular-nums"><AnimatedPct value={simulation.simMatch} active={langOutreach} /></td>
+                    <td className="px-4 py-4 text-end tabular-nums">{pct(simulation.baseBooked)}</td>
+                    <td className="px-4 py-4 text-end tabular-nums"><AnimatedPct value={simulation.simBooked} active={flexSlots} /></td>
                   </tr>
                 </tbody>
               </table>
-              <p className="mt-2 text-xs text-muted">{t('simFootnote')}</p>
+              <p className="border-t border-border bg-warning-soft/30 px-4 py-3 text-xs leading-relaxed text-muted">{t('simFootnote')}</p>
             </div>
           </div>
         )}

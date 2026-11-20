@@ -88,7 +88,7 @@ export default function ResultClient({ id }: { id: string }) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-xl card p-6">
+      <div className="data-panel mx-auto max-w-2xl p-6 sm:p-8">
         <p className="text-danger" role="alert">{error}</p>
         <Link href="/resident" className="mt-3 inline-block font-medium text-primary underline">{tc('back')}</Link>
       </div>
@@ -96,7 +96,7 @@ export default function ResultClient({ id }: { id: string }) {
   }
   if (!data) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
         <span className="sr-only">{t('loading')}</span>
         <SkeletonCard lines={4} />
         <SkeletonCard lines={2} />
@@ -115,38 +115,46 @@ export default function ResultClient({ id }: { id: string }) {
   });
 
   return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <motion.section {...stagger(0)} className="card p-6 text-center sm:p-8">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <RiskBadge tier={tier} />
-          <StateBadge state={data.state} />
+    <div className="mx-auto max-w-5xl space-y-6 lg:space-y-8">
+      <motion.section {...stagger(0)} className="surface-hero p-6 sm:p-8 lg:p-10">
+        <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto] sm:gap-10">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <RiskBadge tier={tier} />
+              <StateBadge state={data.state} />
+            </div>
+            <h1 className="page-heading mt-5">
+              {t('scoreTitle', {
+                instrument: data.instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7',
+                score: data.total_score,
+              })}
+            </h1>
+            <p className="mt-4 break-all font-mono text-xs text-muted">{tc('pseudoId')}: {data.pseudo_id}</p>
+          </div>
+          <div className="flex justify-center rounded-card border border-border bg-card p-5 sm:p-6">
+            <ProgressRing
+              value={data.total_score}
+              max={maxScore}
+              label={String(data.total_score)}
+              sublabel={tt(data.score_band)}
+            />
+          </div>
         </div>
-        <div className="mt-5 flex justify-center">
-          <ProgressRing
-            value={data.total_score}
-            max={maxScore}
-            label={String(data.total_score)}
-            sublabel={tt(data.score_band)}
-          />
+        <div className="mt-8 grid gap-4 border-t border-border pt-6 md:grid-cols-2">
+          <motion.div {...stagger(1)} className="text-base leading-relaxed">
+            <h2 className="mb-2 font-semibold text-primary-strong">{t('whatMeans')}</h2>
+            <p>{t('meansBody', { band: tt(data.score_band) })} {t(`why.${tier}`)}</p>
+          </motion.div>
+          <motion.div {...stagger(2)} className="rounded-btn border border-warning/25 bg-warning-soft p-5 text-sm leading-relaxed text-warning">
+            <h2 className="mb-2 font-semibold">{t('whatNotMeans')}</h2>
+            <p>{t('notMeansBody')}</p>
+          </motion.div>
         </div>
-        <h1 className="mt-4 text-lg font-bold">
-          {t('scoreTitle', {
-            instrument: data.instrument === 'PHQ9' ? 'PHQ-9' : 'GAD-7',
-            score: data.total_score,
-          })}
-        </h1>
-        <motion.div {...stagger(1)} className="mt-4 rounded-btn bg-surface-2 p-4 text-start text-sm leading-relaxed">
-          <strong>{t('whatMeans')}</strong>{' '}
-          {t('meansBody', { band: tt(data.score_band) })} {t(`why.${tier}`)}
-        </motion.div>
-        <motion.p {...stagger(2)} className="mt-3 rounded-btn border border-warning/25 bg-warning-soft p-4 text-start text-sm leading-relaxed text-warning">
-          <strong>{t('whatNotMeans')}</strong> {t('notMeansBody')}
-        </motion.p>
-        <p className="mt-3 font-mono text-xs text-muted">{tc('pseudoId')}: {data.pseudo_id}</p>
       </motion.section>
 
-      <motion.section {...stagger(3)} className="card p-6">
-        <h2 className="font-bold">{te('title')}</h2>
+      <div className="resident-grid items-start gap-6">
+      <motion.section {...stagger(3)} className="data-panel min-w-0 p-6 sm:p-7 lg:col-start-2 lg:row-start-1">
+        <h2 className="section-heading">{te('title')}</h2>
         {explanation ? (
           <>
             <p className="mt-2 text-sm leading-relaxed">{explanation.text}</p>
@@ -163,10 +171,10 @@ export default function ResultClient({ id }: { id: string }) {
         )}
       </motion.section>
 
-      <motion.section {...stagger(4)} id="match" className="card scroll-mt-24 p-6">
-        <h2 className="font-bold">{t('whyTitle')}</h2>
+      <motion.section {...stagger(4)} id="match" className="data-panel min-w-0 scroll-mt-24 p-6 sm:p-7 lg:col-start-1 lg:row-span-2 lg:row-start-1">
+        <h2 className="section-heading">{t('whyTitle')}</h2>
         <p className="mt-1 text-sm text-muted">{t(`why.${tier}`)}</p>
-        <p className="mt-2 text-sm font-semibold text-primary-strong">{t(`sla.${tier}`)}</p>
+        <p className="mt-4 rounded-btn bg-primary/10 p-4 text-sm font-semibold leading-relaxed text-primary-strong">{t(`sla.${tier}`)}</p>
         <ul className="mt-4 space-y-3">
           {match.options.map((opt, i) => {
             const open = expanded === opt.key;
@@ -175,7 +183,7 @@ export default function ResultClient({ id }: { id: string }) {
                 <button
                   onClick={() => setOpenOption(open ? '' : opt.key)}
                   aria-expanded={open}
-                  className="flex w-full items-center justify-between gap-3 p-4 text-start font-semibold transition-colors duration-150 hover:bg-surface-2"
+                  className="flex min-h-16 w-full items-center justify-between gap-3 p-5 text-start font-semibold leading-relaxed transition-colors duration-150 hover:bg-surface-2"
                   style={{ minHeight: 44 }}
                 >
                   {t(`options.${tier}.${opt.key}.title`)}
@@ -198,7 +206,7 @@ export default function ResultClient({ id }: { id: string }) {
                       exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <div className="space-y-2 border-t border-border px-4 py-3 text-sm">
+                      <div className="space-y-4 border-t border-border bg-surface-2/50 px-5 py-5 text-sm leading-relaxed">
                         <p>
                           <span className="font-semibold">{t('eligibility')}</span>{' '}
                           {t(`options.${tier}.${opt.key}.eligibility`)}
@@ -230,15 +238,16 @@ export default function ResultClient({ id }: { id: string }) {
         )}
       </motion.section>
 
-      <motion.section {...stagger(7)} className="card p-6 text-sm">
-        <h2 className="font-bold">{t('clockTitle')}</h2>
-        <ul className="mt-3 space-y-2 text-muted">
-          {data.sla_contact_due && <li>{t('contactBy')} <strong className="text-foreground">{fmtDateTime(data.sla_contact_due)}</strong></li>}
-          {data.sla_book_due && <li>{t('bookBy')} <strong className="text-foreground">{fmtDateTime(data.sla_book_due)}</strong></li>}
-          {data.sla_followup_due && <li>{t('followupBy')} <strong className="text-foreground">{fmtDateTime(data.sla_followup_due)}</strong></li>}
+      <motion.section {...stagger(7)} className="data-panel min-w-0 p-6 text-sm sm:p-7 lg:col-start-2">
+        <h2 className="section-heading">{t('clockTitle')}</h2>
+        <ul className="mt-5 space-y-3 text-muted">
+          {data.sla_contact_due && <li className="timeline-item p-4">{t('contactBy')} <strong className="mt-1 block font-semibold text-foreground">{fmtDateTime(data.sla_contact_due)}</strong></li>}
+          {data.sla_book_due && <li className="timeline-item p-4">{t('bookBy')} <strong className="mt-1 block font-semibold text-foreground">{fmtDateTime(data.sla_book_due)}</strong></li>}
+          {data.sla_followup_due && <li className="timeline-item p-4">{t('followupBy')} <strong className="mt-1 block font-semibold text-foreground">{fmtDateTime(data.sla_followup_due)}</strong></li>}
         </ul>
-        <Link href="/resident" className="mt-4 inline-block font-semibold text-primary underline-offset-2 hover:underline">{t('backToFollowups')}</Link>
+        <Link href="/resident" className="mt-5 inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline">{t('backToFollowups')}</Link>
       </motion.section>
+      </div>
     </div>
   );
 }

@@ -68,16 +68,18 @@ export default function CaseClient({ id }: { id: string }) {
   const [channel, setChannel] = useState('call');
   const [note, setNote] = useState('');
 
-  const load = useCallback(async () => {
-    const res = await fetch(`/api/cases/${id}`);
-    const d = await res.json();
-    if (!res.ok) { setError(d.error ?? t('loadError')); return; }
-    setKase(d.case);
-    setSla(d.sla);
-    setEvents(d.events);
-    setOutreach(d.outreach);
+  const load = useCallback(() =>
+    fetch(`/api/cases/${id}`)
+      .then(async (res) => ({ ok: res.ok, data: await res.json() }))
+      .then(({ ok, data: d }) => {
+        if (!ok) { setError(d.error ?? t('loadError')); return; }
+        setKase(d.case);
+        setSla(d.sla);
+        setEvents(d.events);
+        setOutreach(d.outreach);
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    [id]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -135,16 +137,23 @@ export default function CaseClient({ id }: { id: string }) {
   const reachedIndex = STATE_ORDER.indexOf(kase.state);
 
   return (
-    <div className="space-y-5">
-      <Link href="/navigator" className="inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline">{t('backToQueue')}</Link>
+    <div className="min-w-0 space-y-5 sm:space-y-6">
+      <Link href="/navigator" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+        <svg className="rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {t('backToQueue')}
+      </Link>
 
-      <section className="card p-5 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <RiskBadge tier={kase.risk_tier} />
-          <StateBadge state={kase.state} />
-          <h1 className="font-mono text-lg font-bold">{kase.pseudo_id}</h1>
+      <section className="surface-hero min-w-0 p-5 sm:p-7">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <h1 className="page-heading break-all font-mono text-2xl font-bold tracking-tight sm:text-3xl">{kase.pseudo_id}</h1>
+          <div className="flex flex-wrap items-center gap-2 sm:ms-auto">
+            <RiskBadge tier={kase.risk_tier} />
+            <StateBadge state={kase.state} />
+          </div>
         </div>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-3 text-sm leading-relaxed text-muted">
           {t('meta', {
             language: kase.language,
             age: kase.age_band ?? '—',
@@ -153,7 +162,7 @@ export default function CaseClient({ id }: { id: string }) {
           })}
         </p>
         {sla?.is_overdue && (
-          <p className="mt-3 flex items-center gap-2 rounded-btn bg-danger px-4 py-2.5 text-sm font-bold text-white dark:text-[#2a0d0b]">
+          <p className="mt-4 flex items-center gap-3 rounded-btn border border-danger/30 border-s-4 bg-danger-soft px-4 py-3 text-sm font-bold leading-relaxed text-danger">
             <span className="soft-pulse h-1.5 w-1.5 shrink-0 rounded-pill bg-current" aria-hidden="true" />
             {t('slaBreached', { milestone: milestone(sla.next_milestone), duration: fmtDuration(intervalToMs(sla.overdue_by)) })}
           </p>
@@ -166,9 +175,9 @@ export default function CaseClient({ id }: { id: string }) {
         {error && <p className="mt-2 text-sm text-danger" role="alert">{error}</p>}
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="card p-5 sm:p-6">
-          <h2 className="font-bold">{t('screening')}</h2>
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:gap-6">
+        <section className="card min-w-0 p-5 sm:p-6 lg:col-start-1 lg:row-start-1">
+          <h2 className="section-heading border-b border-border/70 pb-3 font-bold">{t('screening')}</h2>
           {kase.instrument ? (
             <>
               <p className="mt-2 text-sm">
@@ -182,24 +191,26 @@ export default function CaseClient({ id }: { id: string }) {
                 </p>
               )}
               {kase.answers && (
-                <p className="mt-2 font-mono text-xs text-muted">{t('answers')} [{kase.answers.join(', ')}]</p>
+                <p className="mt-3 break-words font-mono text-xs leading-relaxed text-muted">{t('answers')} [{kase.answers.join(', ')}]</p>
               )}
               {kase.free_text && (
-                <p className="mt-2 rounded-btn bg-surface-2 p-3 text-sm italic">“{kase.free_text}”</p>
+                <p className="mt-4 break-words rounded-btn border-s-2 border-accent/40 bg-surface-2 p-4 text-sm italic leading-relaxed">“{kase.free_text}”</p>
               )}
             </>
           ) : (
             <p className="mt-2 text-sm text-muted">{t('noScreening')}</p>
           )}
-          <h3 className="mt-5 text-sm font-bold">{t('suggestedStep')}</h3>
-          <p className="mt-1 text-sm text-muted">
-            {tr(`options.${kase.risk_tier}.${match.options[0].key}.title`)} — {tr(`sla.${kase.risk_tier}`)}
-          </p>
-          <p className="mt-1 text-xs text-muted">{tr(`why.${kase.risk_tier}`)}</p>
+          <div className="mt-5 rounded-btn border border-primary/15 bg-primary/5 p-4">
+            <h3 className="eyebrow text-xs font-bold text-primary">{t('suggestedStep')}</h3>
+            <p className="mt-2 text-sm font-medium leading-relaxed">
+              {tr(`options.${kase.risk_tier}.${match.options[0].key}.title`)} — {tr(`sla.${kase.risk_tier}`)}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted">{tr(`why.${kase.risk_tier}`)}</p>
+          </div>
         </section>
 
-        <section className="card p-5 sm:p-6">
-          <h2 className="font-bold">{t('clockTitle')}</h2>
+        <section className="card min-w-0 p-5 sm:p-6 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <h2 className="section-heading border-b border-border/70 pb-3 font-bold">{t('clockTitle')}</h2>
           <ol className="mt-4 space-y-0">
             {STATE_ORDER.map((s, i) => {
               const reached = i <= reachedIndex;
@@ -238,62 +249,70 @@ export default function CaseClient({ id }: { id: string }) {
             <p className="mt-4 rounded-btn bg-success-soft p-3 text-sm font-semibold text-success">{t('complete')}</p>
           )}
 
-          <h3 className="mt-6 text-sm font-bold">{t('logOutreach')}</h3>
-          <div className="mt-2 flex gap-2">
-            <select
-              value={channel}
-              onChange={(e) => setChannel(e.target.value)}
-              className="input shrink-0"
-              style={{ width: 'auto' }}
-              aria-label={t('channel')}
-            >
-              <option value="call">{t('call')}</option>
-              <option value="sms">{t('sms')}</option>
-              <option value="message">{t('message')}</option>
-            </select>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={t('note')}
-              className="input min-w-0 flex-1"
-              aria-label={t('note')}
-            />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button onClick={() => logOutreach('reached')} disabled={busy} className="btn btn-primary text-sm">
-              {t('reached')}
-            </button>
-            <button onClick={() => logOutreach('not_reached')} disabled={busy} className="btn btn-outline text-sm">
-              {t('notReached')}
-            </button>
+          <div className="mt-6 min-w-0 rounded-btn border border-border bg-surface-2/50 p-4">
+            <h3 className="section-heading text-sm font-bold">{t('logOutreach')}</h3>
+            <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:grid-cols-1 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+              <label className="block min-w-0 text-xs font-semibold text-muted">
+                {t('channel')}
+                <select
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value)}
+                  className="input mt-1.5 min-w-0 text-sm font-normal"
+                  aria-label={t('channel')}
+                >
+                  <option value="call">{t('call')}</option>
+                  <option value="sms">{t('sms')}</option>
+                  <option value="message">{t('message')}</option>
+                </select>
+              </label>
+              <label className="block min-w-0 text-xs font-semibold text-muted">
+                {t('note')}
+                <input
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={t('note')}
+                  className="input mt-1.5 min-w-0 text-sm font-normal"
+                  aria-label={t('note')}
+                />
+              </label>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <button onClick={() => logOutreach('reached')} disabled={busy} className="btn btn-primary text-sm">
+                {t('reached')}
+              </button>
+              <button onClick={() => logOutreach('not_reached')} disabled={busy} className="btn btn-outline text-sm">
+                {t('notReached')}
+              </button>
+            </div>
           </div>
         </section>
-      </div>
 
-      <section className="card p-5 sm:p-6">
-        <h2 className="font-bold">{t('timeline')}</h2>
-        {events.length === 0 && outreach.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">{t('noEvents')}</p>
-        ) : (
-          <ul className="mt-3 space-y-2.5 text-sm">
-            {events.map((e) => (
-              <li key={`e${e.id}`} className="flex gap-3">
-                <span className="shrink-0 font-mono text-xs text-muted">{fmtDateTime(e.created_at)}</span>
-                <span>
-                  {e.event_type === 'state_change'
-                    ? `${e.from_state ? stateLabel(e.from_state) + ' → ' : ''}${stateLabel(e.to_state)}`
-                    : e.event_type === 'outreach'
-                      ? `${t('outreachEvent', {
-                          channel: channelLabel((e.detail?.channel as string) ?? '?'),
-                          outcome: outcomeLabel((e.detail?.outcome as string) ?? '?'),
-                        })}${e.detail?.note ? ` — ${e.detail.note}` : ''}`
-                      : e.event_type}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="card min-w-0 p-5 sm:p-6 lg:col-start-1 lg:row-start-2">
+          <h2 className="section-heading border-b border-border/70 pb-3 font-bold">{t('timeline')}</h2>
+          {events.length === 0 && outreach.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">{t('noEvents')}</p>
+          ) : (
+            <ul className="mt-4 space-y-0 text-sm">
+              {events.map((e) => (
+                <li key={`e${e.id}`} className="relative min-w-0 border-s border-border ps-5 pb-5 last:pb-1">
+                  <span className="absolute -start-1 top-1.5 h-2 w-2 rounded-pill bg-primary" aria-hidden="true" />
+                  <span className="block font-mono text-xs tabular-nums leading-relaxed text-muted">{fmtDateTime(e.created_at)}</span>
+                  <span className="mt-1 block break-words leading-relaxed">
+                    {e.event_type === 'state_change'
+                      ? `${e.from_state ? stateLabel(e.from_state) + ' → ' : ''}${stateLabel(e.to_state)}`
+                      : e.event_type === 'outreach'
+                        ? `${t('outreachEvent', {
+                            channel: channelLabel((e.detail?.channel as string) ?? '?'),
+                            outcome: outcomeLabel((e.detail?.outcome as string) ?? '?'),
+                          })}${e.detail?.note ? ` — ${e.detail.note}` : ''}`
+                        : e.event_type}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

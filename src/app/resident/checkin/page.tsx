@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { motion, useReducedMotion } from 'motion/react';
-import { fmtDateTime } from '@/components/ui';
+import { fmtDateTime, useResidentId } from '@/components/ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton';
@@ -44,39 +44,36 @@ export default function CheckinPage() {
   const t = useTranslations('checkin');
   const tc = useTranslations('common');
   const reduce = useReducedMotion();
-  const [residentId, setResidentId] = useState<string | null>(null);
+  const residentId = useResidentId();
   const [consent, setConsent] = useState(true);
   const [prefs, setPrefs] = useState<ReminderPrefs>(DEFAULT_PREFS);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [events, setEvents] = useState<ReminderEvent[]>([]);
   const [unread, setUnread] = useState(0);
   const [audit, setAudit] = useState<ReminderEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setLoading] = useState(true);
+  const loading = residentId === undefined || (residentId !== null && fetching);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (id: string) => {
-    const [p, c, n, a] = await Promise.all([
+  const load = useCallback((id: string) =>
+    Promise.all([
       fetch(`/api/residents/${id}/reminder-prefs`).then((r) => r.json()),
       fetch(`/api/residents/${id}/checkins`).then((r) => r.json()),
       fetch(`/api/residents/${id}/notifications`).then((r) => r.json()),
       fetch(`/api/residents/${id}/audit`).then((r) => r.json()),
-    ]);
-    setConsent(Boolean(p.consent));
-    setPrefs(p.prefs ?? DEFAULT_PREFS);
-    setCheckins(c.checkins ?? []);
-    setEvents(n.events ?? []);
-    setUnread(Number(n.unread ?? 0));
-    setAudit(a.reminders ?? []);
-  }, []);
+    ]).then(([p, c, n, a]) => {
+      setConsent(Boolean(p.consent));
+      setPrefs(p.prefs ?? DEFAULT_PREFS);
+      setCheckins(c.checkins ?? []);
+      setEvents(n.events ?? []);
+      setUnread(Number(n.unread ?? 0));
+      setAudit(a.reminders ?? []);
+    }), []);
 
   useEffect(() => {
     const id = localStorage.getItem('jisr_resident_id');
-    setResidentId(id);
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
     load(id)
       .catch(() => setError(t('error')))
       .finally(() => setLoading(false));
@@ -147,14 +144,20 @@ export default function CheckinPage() {
   const kindLabel = (kind: string) => (t.has(`eventKinds.${kind}`) ? t(`eventKinds.${kind}`) : kind);
 
   return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <section className="card p-6">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{t('intro')}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/resident/companion" className="btn btn-primary px-3 py-2 text-sm">{t('openCompanion')}</Link>
-          <Link href="/resident/calm" className="btn btn-outline px-3 py-2 text-sm">{t('openCalm')}</Link>
-          <Link href="/resident/trusted-contact" className="btn btn-outline px-3 py-2 text-sm">{t('openContact')}</Link>
+    <div className="mx-auto max-w-5xl space-y-6 lg:space-y-8">
+      <section className="surface-hero grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_1fr] lg:p-10">
+        <div>
+          <h1 className="page-heading">{t('title')}</h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">{t('intro')}</p>
+        </div>
+        <div className="grid gap-3">
+          <Link href="/resident/companion" className="feature-link flex items-center justify-between gap-4 bg-card font-semibold text-primary-strong">
+            {t('openCompanion')}<span aria-hidden="true" className="text-accent rtl:rotate-180">→</span>
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/resident/calm" className="btn btn-outline flex-1 text-sm">{t('openCalm')}</Link>
+            <Link href="/resident/trusted-contact" className="btn btn-outline flex-1 text-sm">{t('openContact')}</Link>
+          </div>
         </div>
       </section>
 
@@ -179,11 +182,11 @@ export default function CheckinPage() {
             <p role="alert" className="card border-danger/50 p-4 text-sm text-danger">{error}</p>
           )}
 
-          <PrefsForm residentId={residentId!} prefs={prefs} onSaved={setPrefs} />
-
-          <section className="card p-6">
+          <div className="resident-grid items-start gap-6">
+          <div className="min-w-0 space-y-6">
+          <section className="data-panel p-6 sm:p-7">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-bold">{t('notificationsTitle')}</h2>
+              <h2 className="section-heading">{t('notificationsTitle')}</h2>
               {unread > 0 && <Badge tone="primary">{t('unread', { n: unread })}</Badge>}
             </div>
             <Button onClick={evaluate} disabled={busy} variant="outline" className="mt-3 px-3 py-2 text-sm">
@@ -199,7 +202,7 @@ export default function CheckinPage() {
                     initial={reduce || i > 2 ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex flex-wrap items-center gap-2 rounded-btn border border-border bg-surface-2/50 p-3 text-sm"
+                    className="timeline-item flex flex-wrap items-center gap-3 p-4 text-sm"
                   >
                     <Badge tone={KIND_TONE[e.kind] ?? 'neutral'}>{kindLabel(e.kind)}</Badge>
                     <span className="text-xs text-muted">{fmtDateTime(e.created_at)}</span>
@@ -207,7 +210,7 @@ export default function CheckinPage() {
                       <button
                         type="button"
                         onClick={() => markRead(e.id)}
-                        className="ms-auto text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                        className="ms-auto inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline"
                       >
                         {t('markRead')}
                       </button>
@@ -218,14 +221,14 @@ export default function CheckinPage() {
             )}
           </section>
 
-          <section className="card p-6">
-            <h2 className="font-bold">{t('checkinsTitle')}</h2>
+          <section className="data-panel border-primary/25 p-6 sm:p-7">
+            <h2 className="section-heading">{t('checkinsTitle')}</h2>
             {checkins.length === 0 ? (
               <div className="mt-3"><EmptyState title={t('checkinsEmpty')} /></div>
             ) : (
               <ul className="mt-3 space-y-3">
                 {checkins.map((c) => (
-                  <li key={c.id} className="rounded-btn border border-border bg-surface-2/50 p-4">
+                  <li key={c.id} className="timeline-item p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={c.state === 'completed' ? 'success' : c.state === 'missed' ? 'warning' : 'neutral'}>
                         {t.has(`states.${c.state}`) ? t(`states.${c.state}`) : c.state}
@@ -248,8 +251,8 @@ export default function CheckinPage() {
             )}
           </section>
 
-          <section className="card p-6">
-            <h2 className="font-bold">{t('ladderTitle')}</h2>
+          <section className="rounded-card border border-border bg-surface-2/50 p-6">
+            <h2 className="section-heading">{t('ladderTitle')}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
               {t('ladderBody', { n: prefs.ladderMissLimit })}
             </p>
@@ -258,14 +261,17 @@ export default function CheckinPage() {
             </div>
           </section>
 
-          <section className="card p-6">
-            <h2 className="font-bold">{t('auditTitle')}</h2>
+          </div>
+          <div className="min-w-0 space-y-6">
+          <PrefsForm residentId={residentId!} prefs={prefs} onSaved={setPrefs} />
+          <section className="data-panel p-6 sm:p-7">
+            <h2 className="section-heading">{t('auditTitle')}</h2>
             {audit.length === 0 ? (
               <p className="mt-3 text-sm text-muted">{t('auditEmpty')}</p>
             ) : (
               <ul className="mt-3 space-y-2">
                 {audit.slice(0, 20).map((e) => (
-                  <li key={e.id} className="flex flex-wrap items-center gap-2 text-sm">
+                  <li key={e.id} className="timeline-item flex flex-wrap items-center gap-2 p-3 text-sm">
                     <Badge tone={KIND_TONE[e.kind] ?? 'neutral'}>{kindLabel(e.kind)}</Badge>
                     <span className="text-xs text-muted">{fmtDateTime(e.created_at)}</span>
                   </li>
@@ -273,10 +279,12 @@ export default function CheckinPage() {
               </ul>
             )}
           </section>
+          </div>
+          </div>
         </>
       )}
 
-      <section className="card p-6">
+      <section className="border-t border-border pt-5">
         <div className="flex flex-wrap gap-2 text-sm">
           <Link href="/navigator" className="btn btn-outline px-3 py-2">{t('clockLink')}</Link>
           <Link href="/health-system" className="btn btn-outline px-3 py-2">{t('gapLink')}</Link>

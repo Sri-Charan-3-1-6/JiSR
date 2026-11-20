@@ -108,17 +108,17 @@ export default function CompanionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <section className="card p-6">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 rounded-btn border border-warning/25 bg-warning-soft p-3 text-xs font-semibold text-warning">
+    <div className="mx-auto max-w-3xl space-y-6">
+      <section className="surface-hero p-6 sm:p-8">
+        <h1 className="page-heading">{t('title')}</h1>
+        <p className="mt-5 rounded-btn border border-warning/25 bg-warning-soft p-4 text-sm leading-relaxed text-warning">
           {t('disclaimer')}
         </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Button onClick={talkToHuman} variant="danger" className="px-3 py-2 text-sm">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <Button onClick={talkToHuman} variant="outline" className="text-sm text-primary-strong">
             {t('human')}
           </Button>
-          <span className="text-xs text-muted">{t('stepCap', { k: Math.min(steps + 1, SESSION_STEP_CAP), n: SESSION_STEP_CAP })}</span>
+          <span className="eyebrow text-muted">{t('stepCap', { k: Math.min(steps + 1, SESSION_STEP_CAP), n: SESSION_STEP_CAP })}</span>
         </div>
       </section>
 
@@ -127,14 +127,15 @@ export default function CompanionPage() {
         initial={reduce ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="card p-6"
+        className="data-panel p-6 sm:p-8"
         aria-live="polite"
       >
         {ended ? (
           <>
-            <h2 className="text-lg font-bold">{t('endTitle')}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{t(node.promptKey)}</p>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{t('endBody')}</p>
+            <span aria-hidden="true" className="mb-5 flex h-12 w-12 items-center justify-center rounded-pill bg-primary/10 text-2xl text-primary">✓</span>
+            <h2 className="section-heading">{t('endTitle')}</h2>
+            <p className="mt-4 text-base leading-relaxed text-muted">{t(node.promptKey)}</p>
+            <p className="mt-3 text-base leading-relaxed text-muted">{t('endBody')}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {ended === 'calm' && (
                 <Link href="/resident/calm" className="btn btn-primary px-3 py-2 text-sm">{t('optCalm')}</Link>
@@ -151,10 +152,13 @@ export default function CompanionPage() {
           </>
         ) : (
           <>
-            <h2 className="text-lg font-bold">{t(node.promptKey)}</h2>
+            <div className="flex items-start gap-4 rounded-card rounded-ss-sm bg-surface-2/70 p-5 sm:p-6">
+              <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" className="mt-1 shrink-0 text-accent"><path d="M20 4C8 3 3 9 5 15s13 6 15-11Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><path d="m4 21 11-11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+              <h2 className="text-2xl font-semibold leading-snug tracking-tight">{t(node.promptKey)}</h2>
+            </div>
             {node.freeText && (
               <>
-                <label className="mt-3 block text-sm font-medium" htmlFor="companion-free-text">
+                <label className="mt-6 block text-sm font-medium" htmlFor="companion-free-text">
                   {t('freeTextLabel')}
                 </label>
                 <textarea
@@ -168,16 +172,18 @@ export default function CompanionPage() {
                 <p className="mt-1 text-xs text-muted">{t('crisisNote')}</p>
               </>
             )}
-            <div className="mt-4 grid gap-2">
-              {node.options.map((o) => (
+            <div className="mt-6 grid gap-3">
+              {node.options.map((o, i) => (
                 <Button
                   key={o.labelKey}
                   onClick={() => choose(o.next)}
                   variant="outline"
                   disabled={busy}
-                  className="w-full justify-start text-start"
+                  className="group min-h-16 w-full justify-start gap-4 px-5 py-4 text-start text-base"
                 >
-                  {t(o.labelKey)}
+                  <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-surface-2 text-xs tabular-nums text-muted group-hover:text-primary">{i + 1}</span>
+                  <span className="flex-1">{t(o.labelKey)}</span>
+                  <span aria-hidden="true" className="text-primary rtl:rotate-180">→</span>
                 </Button>
               ))}
             </div>
@@ -185,7 +191,7 @@ export default function CompanionPage() {
         )}
       </motion.section>
 
-      <section className="card p-6">
+      <section className="border-t border-border pt-5">
         <div className="flex flex-wrap gap-2 text-sm">
           <Link href="/resident/checkin" className="btn btn-outline px-3 py-2">{t('backToCheckin')}</Link>
           <Link href="/navigator" className="btn btn-outline px-3 py-2">{t('clockLink')}</Link>

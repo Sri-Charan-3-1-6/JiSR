@@ -108,30 +108,41 @@ export default function CalmPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <section className="card p-6">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{t('intro')}</p>
-      </section>
+    <div className="mx-auto max-w-5xl space-y-6 lg:space-y-8">
+      <header className="surface-hero flex items-center justify-between gap-6 p-6 sm:p-8 lg:p-10">
+        <div>
+          <h1 className="page-heading">{t('title')}</h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">{t('intro')}</p>
+        </div>
+        <svg aria-hidden="true" viewBox="0 0 80 80" fill="none" className="hidden h-24 w-24 shrink-0 text-accent sm:block"><circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="1" /><circle cx="40" cy="40" r="23" stroke="currentColor" strokeWidth="1" /><circle cx="40" cy="40" r="12" stroke="currentColor" strokeWidth="1" /></svg>
+      </header>
 
-      <section className="card p-6">
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('title')}>
-          {exercises.map((e) => (
+      <div className="resident-grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <section className="data-panel min-w-0 p-5 sm:p-8">
+        <div className="grid grid-cols-3 gap-2 rounded-btn bg-surface-2/60 p-2" role="tablist" aria-label={t('title')}>
+          {exercises.map((e, i) => (
             <button
               key={e.key}
               type="button"
               role="tab"
+              id={`calm-tab-${e.key}`}
+              aria-controls="calm-exercise-panel"
               aria-selected={active === e.key}
               onClick={() => setActive(e.key)}
-              className={`btn px-3 py-2 text-sm ${active === e.key ? 'btn-primary' : 'btn-outline'}`}
+              className={`btn flex-col gap-2 px-2 py-3 text-sm leading-snug ${active === e.key ? 'btn-primary' : 'btn-ghost'}`}
             >
+              <span aria-hidden="true" className="text-xs tabular-nums opacity-70">0{i + 1}</span>
               {e.title}
             </button>
           ))}
         </div>
-        <p className="mt-3 text-sm text-muted">{exercises.find((e) => e.key === active)!.hint}</p>
+        <p className="mt-5 text-center text-sm leading-relaxed text-muted">{exercises.find((e) => e.key === active)!.hint}</p>
         <motion.div
           key={active}
+          id="calm-exercise-panel"
+          role="tabpanel"
+          aria-labelledby={`calm-tab-${active}`}
+          className="mt-6 border-t border-border pt-6"
           initial={reduce ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
@@ -142,13 +153,13 @@ export default function CalmPage() {
         </motion.div>
       </section>
 
-      <section className="card p-6">
+      <section className="min-w-0 rounded-card border border-border bg-surface-2/50 p-6 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">{t('lineTitle')}</h2>
+          <h2 className="section-heading">{t('lineTitle')}</h2>
           {line?.reviewed && <Badge tone="success">✓</Badge>}
         </div>
         {line ? (
-          <blockquote className="mt-3 border-s-2 border-primary ps-4 text-base leading-relaxed">
+          <blockquote className="my-6 border-s-2 border-accent ps-5 text-xl font-medium leading-relaxed text-primary-strong">
             {line.body}
           </blockquote>
         ) : (
@@ -173,12 +184,13 @@ export default function CalmPage() {
             aria-checked={jokesOptIn}
             aria-label={t('jokesToggle')}
             onClick={toggleJokes}
-            className={`relative mt-1 h-8 w-[52px] shrink-0 rounded-pill transition-colors duration-250 ${
+            className={`relative h-11 w-16 shrink-0 rounded-pill transition-colors duration-250 motion-reduce:transition-none ${
               jokesOptIn ? 'bg-primary' : 'bg-border'
             }`}
           >
             <span
-              className={`absolute start-1 top-1 h-6 w-6 rounded-pill bg-white shadow-1 transition-transform duration-250 ${
+              aria-hidden="true"
+              className={`absolute start-1.5 top-1.5 h-8 w-8 rounded-pill bg-primary-foreground shadow-1 transition-transform duration-250 motion-reduce:transition-none ${
                 jokesOptIn ? 'translate-x-[20px] rtl:-translate-x-[20px]' : ''
               }`}
             />
@@ -188,7 +200,8 @@ export default function CalmPage() {
         <p className="mt-1 text-xs leading-relaxed text-muted">{t('reviewedNote')}</p>
       </section>
 
-      <section className="card p-6">
+      </div>
+      <section className="border-t border-border pt-5">
         <div className="flex flex-wrap gap-2 text-sm">
           <Link href="/navigator" className="btn btn-outline px-3 py-2">{t('clockLink')}</Link>
           <Link href="/health-system" className="btn btn-outline px-3 py-2">{t('gapLink')}</Link>

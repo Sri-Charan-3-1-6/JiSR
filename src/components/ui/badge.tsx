@@ -8,7 +8,7 @@ const TONE_CLASS: Record<Tone, string> = {
   warning: 'bg-warning-soft text-warning border-warning/25',
   danger: 'bg-danger-soft text-danger border-danger/25',
   success: 'bg-success-soft text-success border-success/25',
-  accent: 'bg-accent/10 text-accent border-accent/25',
+  accent: 'bg-card text-accent border-accent/25',
 };
 
 export function Badge({

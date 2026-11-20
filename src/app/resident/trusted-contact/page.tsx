@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { motion, useReducedMotion } from 'motion/react';
-import { fmtDateTime } from '@/components/ui';
+import { fmtDateTime, useResidentId } from '@/components/ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton';
@@ -31,7 +31,7 @@ export default function TrustedContactPage() {
   const tc = useTranslations('common');
   const reduce = useReducedMotion();
   const toast = useToast();
-  const [residentId, setResidentId] = useState<string | null>(null);
+  const residentId = useResidentId();
   const [consent, setConsent] = useState(true);
   const [contact, setContact] = useState<Contact | null>(null);
   const [eligible, setEligible] = useState(false);
@@ -39,30 +39,28 @@ export default function TrustedContactPage() {
   const [label, setLabel] = useState('');
   const [phone, setPhone] = useState('');
   const [sent, setSent] = useState<SentResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setLoading] = useState(true);
+  const loading = residentId === undefined || (residentId !== null && fetching);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (id: string) => {
-    const r = await fetch(`/api/residents/${id}/trusted-contact`);
-    const d = await r.json();
-    setConsent(Boolean(d.consent));
-    setContact(d.contact ?? null);
-    setEligible(Boolean(d.eligibleTask));
-    setEvents(d.events ?? []);
-    if (d.contact) {
-      setLabel(d.contact.contact_label);
-      setPhone(d.contact.contact_phone);
-    }
-  }, []);
+  const load = useCallback((id: string) =>
+    fetch(`/api/residents/${id}/trusted-contact`)
+      .then((r) => r.json())
+      .then((d) => {
+        setConsent(Boolean(d.consent));
+        setContact(d.contact ?? null);
+        setEligible(Boolean(d.eligibleTask));
+        setEvents(d.events ?? []);
+        if (d.contact) {
+          setLabel(d.contact.contact_label);
+          setPhone(d.contact.contact_phone);
+        }
+      }), []);
 
   useEffect(() => {
     const id = localStorage.getItem('jisr_resident_id');
-    setResidentId(id);
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
     load(id)
       .catch(() => setError(t('error')))
       .finally(() => setLoading(false));
@@ -144,13 +142,16 @@ export default function TrustedContactPage() {
   );
 
   return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <section className="card p-6">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{t('intro')}</p>
-        <p className="mt-3 rounded-btn border border-primary/25 bg-primary/10 p-3 text-xs font-semibold text-primary-strong">
-          {t('neverNote')}
-        </p>
+    <div className="mx-auto max-w-5xl space-y-6 lg:space-y-8">
+      <section className="surface-hero grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2 lg:gap-10 lg:p-10">
+        <div>
+          <h1 className="page-heading">{t('title')}</h1>
+          <p className="mt-4 text-base leading-relaxed text-muted">{t('intro')}</p>
+        </div>
+        <div className="rounded-card border border-primary/25 bg-card p-5 sm:p-6">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" className="mb-4 text-accent"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5V10Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><path d="M12 14v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          <p className="text-base font-medium leading-relaxed text-primary-strong">{t('neverNote')}</p>
+        </div>
       </section>
 
       {!residentId && !loading ? (
@@ -174,8 +175,9 @@ export default function TrustedContactPage() {
             <p role="alert" className="card border-danger/50 p-4 text-sm text-danger">{error}</p>
           )}
 
-          <section className="card p-6">
-            <h2 className="font-bold">{contact ? t('current') : t('save')}</h2>
+          <div className="resident-grid items-start gap-6">
+          <section className="data-panel min-w-0 p-6 sm:p-7">
+            <h2 className="section-heading">{contact ? t('current') : t('save')}</h2>
             <div className="mt-4 grid gap-4">
               <label className="block text-sm">
                 <span className="font-medium">{t('label')}</span>
@@ -184,7 +186,7 @@ export default function TrustedContactPage() {
                   value={label}
                   maxLength={40}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="input mt-1 w-full"
+                  className="input mt-2 w-full text-base"
                 />
               </label>
               <label className="block text-sm">
@@ -195,7 +197,7 @@ export default function TrustedContactPage() {
                   value={phone}
                   maxLength={15}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  className="input mt-1 w-full"
+                  className="input mt-2 w-full text-base"
                 />
                 <span className="mt-1 block text-xs text-muted">{t('phoneHint')}</span>
               </label>
@@ -210,11 +212,12 @@ export default function TrustedContactPage() {
             </div>
           </section>
 
+          <div className="min-w-0 space-y-6">
           {contact && (
-            <section className="card p-6">
+            <section className="data-panel p-6 sm:p-7">
               {eligible ? (
                 <>
-                  <h2 className="font-bold">{t('eligibleTitle')}</h2>
+                  <h2 className="section-heading">{t('eligibleTitle')}</h2>
                   <p className="mt-2 text-sm text-muted">{t('eligibleBody')}</p>
                   {!sent && !madeAfterSent && (
                     <Button onClick={send} disabled={busy} className="mt-4">
@@ -231,19 +234,19 @@ export default function TrustedContactPage() {
                   initial={reduce ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  className="mt-4 rounded-btn border border-border bg-surface-2/50 p-4"
+                  className="mt-6 rounded-card border border-primary/20 bg-surface-2/60 p-5"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone="warning">{t('simulatedBadge')}</Badge>
                     <span className="text-xs font-semibold text-muted">{t('messagePreview')}</span>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed">{sent?.message ?? lastSent?.message}</p>
+                  <blockquote className="mt-4 border-s-2 border-accent ps-4 text-base leading-relaxed">{sent?.message ?? lastSent?.message}</blockquote>
                   {sent?.waLink && (
                     <a
                       href={sent.waLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
+                      className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline"
                     >
                       {t('waLink')}
                     </a>
@@ -261,14 +264,14 @@ export default function TrustedContactPage() {
             </section>
           )}
 
-          <section className="card p-6">
-            <h2 className="font-bold">{t('eventsTitle')}</h2>
+          <section className="data-panel p-6 sm:p-7">
+            <h2 className="section-heading">{t('eventsTitle')}</h2>
             {events.length === 0 ? (
               <p className="mt-3 text-sm text-muted">{t('eventsEmpty')}</p>
             ) : (
               <ul className="mt-3 space-y-2">
                 {events.map((e) => (
-                  <li key={e.id} className="flex flex-wrap items-center gap-2 text-sm">
+                  <li key={e.id} className="timeline-item flex flex-wrap items-center gap-2 p-4 text-sm">
                     <Badge tone={e.kind === 'contact_made' ? 'success' : 'warning'}>
                       {e.kind === 'contact_made' ? t('made') : t('sent')}
                     </Badge>
@@ -278,10 +281,12 @@ export default function TrustedContactPage() {
               </ul>
             )}
           </section>
+          </div>
+          </div>
         </>
       )}
 
-      <section className="card p-6">
+      <section className="border-t border-border pt-5">
         <div className="flex flex-wrap gap-2 text-sm">
           <Link href="/navigator" className="btn btn-outline px-3 py-2">{t('clockLink')}</Link>
           <Link href="/health-system" className="btn btn-outline px-3 py-2">{t('gapLink')}</Link>

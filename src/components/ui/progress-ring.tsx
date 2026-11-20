@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 
 export function ProgressRing({
@@ -17,6 +17,7 @@ export function ProgressRing({
   sublabel?: string;
 }) {
   const reduce = useReducedMotion();
+  const gradientId = useId();
   const stroke = 10;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
@@ -24,12 +25,15 @@ export function ProgressRing({
   const [drawn, setDrawn] = useState(reduce ? frac : 0);
 
   useEffect(() => {
-    if (reduce) {
-      setDrawn(frac);
-      return;
-    }
-    const id = requestAnimationFrame(() => requestAnimationFrame(() => setDrawn(frac)));
-    return () => cancelAnimationFrame(id);
+    if (reduce) return;
+    let nextFrame = 0;
+    const id = requestAnimationFrame(() => {
+      nextFrame = requestAnimationFrame(() => setDrawn(frac));
+    });
+    return () => {
+      cancelAnimationFrame(id);
+      cancelAnimationFrame(nextFrame);
+    };
   }, [frac, reduce]);
 
   return (
@@ -53,15 +57,15 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="url(#jisr-ring-grad)"
+          stroke={`url(#${gradientId})`}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
-          strokeDashoffset={c * (1 - drawn)}
+          strokeDashoffset={c * (1 - (reduce ? frac : drawn))}
           className="ring-fill"
         />
         <defs>
-          <linearGradient id="jisr-ring-grad" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
             <stop stopColor="var(--primary)" />
             <stop offset="1" stopColor="var(--accent)" />
           </linearGradient>

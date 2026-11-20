@@ -54,7 +54,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e7c74",
+  themeColor: "#246454",
 };
 
 // Applies the saved theme before first paint; keeps the root layout static.
@@ -69,9 +69,10 @@ async function IntlShell({ children }: { children: React.ReactNode }) {
         <ToastProvider>
           <DemoProvider>
             <LocaleEffects locale={locale} />
+            <a href="#main-content" className="skip-link">{t("skipToContent")}</a>
             <Header />
-            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:py-8">{children}</main>
-            <footer className="border-t border-border bg-card px-4 py-3 pb-20 text-center text-xs text-muted md:pb-3">
+            <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+            <footer className="border-t border-border px-6 py-6 pb-24 text-center text-xs leading-relaxed text-muted md:pb-6">
               {t("footer")}{" "}
               <Link href="/about" className="font-semibold text-primary underline-offset-2 hover:underline">
                 {t("aboutLink")}

@@ -14,11 +14,6 @@ export function LanguageSwitcher() {
   const router = useRouter();
   const t = useTranslations('common');
 
-  function choose(code: string) {
-    document.cookie = `jisr_locale=${code}; path=/; max-age=31536000; samesite=lax`;
-    router.refresh();
-  }
-
   return (
     <div
       role="group"
@@ -28,7 +23,10 @@ export function LanguageSwitcher() {
       {OPTIONS.map((o) => (
         <button
           key={o.code}
-          onClick={() => choose(o.code)}
+          onClick={() => {
+            document.cookie = `jisr_locale=${o.code}; path=/; max-age=31536000; samesite=lax`;
+            router.refresh();
+          }}
           aria-pressed={locale === o.code}
           className={`rounded-pill px-2.5 py-2 text-sm font-semibold transition-colors duration-150 ${
             locale === o.code

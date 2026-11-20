@@ -1,5 +1,18 @@
 {
+  "ui": {
+    "heroEyebrow": "دعم مبكر. تواصل إنساني.",
+    "heroStart": "قليل من الوضوح.",
+    "heroEnd": "جسر إلى الرعاية.",
+    "residentCta": "اعثر على خطوتك التالية",
+    "pathTitle": "بإيقاعك. طريق واضح إلى الأمام.",
+    "screen": "الفحص",
+    "understand": "الفهم",
+    "connect": "التواصل",
+    "portalEyebrow": "جسر واحد. ثلاث وجهات نظر.",
+    "portalTitle": "دعم مترابط."
+  },
   "common": {
+    "skipToContent": "انتقل إلى المحتوى",
     "back": "رجوع",
     "loading": "جارٍ التحميل…",
     "refresh": "تحديث",

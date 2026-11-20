@@ -25,10 +25,10 @@ export function BottomNav({
   return (
     <nav
       aria-label="Resident"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm md:static md:mb-8 md:rounded-pill md:border md:bg-card"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="mx-auto flex max-w-xl">
+      <ul className="mx-auto flex max-w-4xl md:p-1">
         {items.map((item) => {
           const active = item.href === activeHref;
           return (
@@ -36,7 +36,7 @@ export function BottomNav({
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors duration-150 ${
+                className={`relative flex min-h-[60px] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors duration-150 md:min-h-11 md:flex-row md:gap-2 md:rounded-pill md:text-sm ${
                   active ? 'text-primary' : 'text-muted'
                 }`}
               >
