@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { one, query, simNow } from '@/lib/db';
 import { SESSION_STEP_CAP } from '@/lib/companion';
 
-// Records a scripted companion session. mood_tag is stored for AGGREGATE
-// reports only and is never echoed back to the resident.
+// Records a companion chat session (metrics only, never conversation text).
+// mood_tag is SELF-REPORTED and stored for AGGREGATE reports only; it is
+// never echoed back to the resident.
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const residentId = String(body.residentId ?? '');

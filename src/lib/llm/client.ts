@@ -59,26 +59,26 @@ export function resetBreaker() {
 export function breakerRemainingMs(): number {
   return Math.max(0, breakerOpenUntil - Date.now());
 }
-function breakerOpen() {
+export function breakerOpen() {
   return Date.now() < breakerOpenUntil;
 }
-function recordFailure() {
+export function recordFailure() {
   consecutiveFailures += 1;
   if (consecutiveFailures >= BREAKER_THRESHOLD) {
     breakerOpenUntil = Date.now() + BREAKER_COOLDOWN_MS;
   }
 }
-function recordSuccess() {
+export function recordSuccess() {
   consecutiveFailures = 0;
 }
 
-type ChatOutcome =
+export type ChatOutcome =
   | { kind: 'ok'; text: string; model: string }
   | { kind: 'daily' }
   | { kind: 'array' }
   | { kind: 'fail' };
 
-async function chatRequest(
+export async function chatRequest(
   provider: Provider,
   models: string[],
   messages: { role: string; content: string }[],

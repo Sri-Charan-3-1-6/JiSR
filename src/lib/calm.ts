@@ -2,7 +2,12 @@
 // supportive lines come from the calm_lines table (pre-written, reviewed),
 // never AI-generated. Symbols are language-neutral SVG shapes.
 
-export type Exercise = 'breathing' | 'grounding' | 'memory';
+export type Exercise = 'breathing' | 'grounding' | 'memory' | 'bubbles' | 'echo';
+
+export const EXERCISES: readonly Exercise[] = ['breathing', 'grounding', 'memory', 'bubbles', 'echo'];
+
+export const BUBBLE_GOAL = 12;
+export const ECHO_ROUNDS = [2, 3, 4] as const;
 
 export const BREATHING_PHASES = [
   { key: 'inhale', seconds: 4 },

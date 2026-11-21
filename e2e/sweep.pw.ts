@@ -35,7 +35,8 @@ test('polish sweep: every page has title, synthetic badge, honest footer and zer
     // Skeletons are text-less; wait until real content (or an honest empty/error state) renders.
     // /emergency portals its full-screen overlay to body, so main is empty by design.
     if (route === '/emergency') {
-      await expect(page.getByText('VERIFY WITH ABU DHABI').first(), route).toBeVisible();
+      await expect(page.locator('a[href="tel:998"]').first(), route).toBeVisible();
+      await expect(page.locator('a[href="tel:8001717"]').first(), route).toBeVisible();
     } else {
       await expect(page.locator('main'), route).not.toHaveText(/^\s*$/, { timeout: 20_000 });
     }

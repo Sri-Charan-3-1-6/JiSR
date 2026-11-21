@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { EMERGENCY_CONFIG } from '@/config/emergency';
+import { EMERGENCY_CONTACTS } from '@/config/emergency';
 import { SyntheticBadge } from '@/components/header';
 import EmergencyOverlay from '@/components/emergency-overlay';
 
@@ -41,23 +41,23 @@ export default async function EmergencyPage() {
 
         <div className="card mt-4 p-6">
           <h2 className="font-bold">{t('contacts')}</h2>
-          <p className="mt-2 rounded-btn bg-warning-soft p-3 text-xs font-semibold text-warning">
-            {EMERGENCY_CONFIG.verificationNotice}
-          </p>
           <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
-              <dt className="font-semibold">{t('ambulance')}</dt>
-              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.ambulance.number}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
-              <dt className="font-semibold">{t('mentalHealthLine')}</dt>
-              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.mentalHealthLine.number}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
-              <dt className="font-semibold">{t('emergencyDepartment')}</dt>
-              <dd className="font-mono text-muted">{EMERGENCY_CONFIG.emergencyDepartment.number}</dd>
-            </div>
+            {EMERGENCY_CONTACTS.map((c) => (
+              <div key={c.key} className="flex items-center justify-between gap-3 rounded-btn bg-surface-2 p-3">
+                <dt className="font-semibold">{t(c.key)}</dt>
+                <dd>
+                  <a
+                    href={`tel:${c.tel}`}
+                    className="font-mono text-base font-semibold text-primary underline-offset-2 hover:underline"
+                    aria-label={`${t(c.key)} — ${t('tapToCall')} ${c.number}`}
+                  >
+                    {c.number}
+                  </a>
+                </dd>
+              </div>
+            ))}
           </dl>
+          <p className="mt-3 text-xs leading-relaxed text-muted">{t('sourceNote')}</p>
         </div>
 
         <a href="#human" className="btn btn-danger mt-6 w-full text-lg" style={{ minHeight: 56 }}>

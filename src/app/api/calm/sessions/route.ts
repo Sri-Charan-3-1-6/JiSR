@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { one, query, simNow } from '@/lib/db';
+import { EXERCISES } from '@/lib/calm';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const residentId = String(body.residentId ?? '');
   const exercise = String(body.exercise ?? '');
   const seconds = Number(body.seconds);
-  if (!['breathing', 'grounding', 'memory'].includes(exercise)) {
+  if (!(EXERCISES as readonly string[]).includes(exercise)) {
     return NextResponse.json({ error: 'Unknown exercise' }, { status: 400 });
   }
   if (!Number.isInteger(seconds) || seconds < 0 || seconds > 3600) {

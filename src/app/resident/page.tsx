@@ -74,6 +74,11 @@ export default function ResidentHome() {
             <span className="flex-1">{tcheck('openCompanion')}</span>
             <span aria-hidden="true" className="rtl:rotate-180">→</span>
           </Link>
+          <Link href="/resident/calm" className="feature-link mt-3 flex items-center gap-3 font-semibold text-primary-strong">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /></svg>
+            <span className="flex-1">{tcheck('openCalm')}</span>
+            <span aria-hidden="true" className="rtl:rotate-180">→</span>
+          </Link>
           <Link href="/resident/checkin" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-muted underline-offset-4 hover:text-primary hover:underline">
             {t('checkinLink')}
           </Link>

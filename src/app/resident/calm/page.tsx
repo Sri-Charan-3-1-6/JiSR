@@ -10,6 +10,8 @@ import { useToast } from '@/components/ui/toast';
 import { BreathingCircle } from '@/components/calm/breathing-circle';
 import { GroundingStepper } from '@/components/calm/grounding-stepper';
 import { MemoryMatch } from '@/components/calm/memory-match';
+import { BubbleCalm } from '@/components/calm/bubble-calm';
+import { PatternEcho } from '@/components/calm/pattern-echo';
 import { CALM_LINES_CACHE_PREFIX, type Exercise } from '@/lib/calm';
 
 interface CalmLine {
@@ -105,6 +107,8 @@ export default function CalmPage() {
     { key: 'breathing', title: t('breathing'), hint: t('breathingHint') },
     { key: 'grounding', title: t('grounding'), hint: t('groundingHint') },
     { key: 'memory', title: t('memory'), hint: t('memoryHint') },
+    { key: 'bubbles', title: t('bubbles'), hint: t('bubblesHint') },
+    { key: 'echo', title: t('echo'), hint: t('echoHint') },
   ];
 
   return (
@@ -119,7 +123,7 @@ export default function CalmPage() {
 
       <div className="resident-grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
       <section className="data-panel min-w-0 p-5 sm:p-8">
-        <div className="grid grid-cols-3 gap-2 rounded-btn bg-surface-2/60 p-2" role="tablist" aria-label={t('title')}>
+        <div className="grid grid-cols-3 gap-2 rounded-btn bg-surface-2/60 p-2 sm:grid-cols-5" role="tablist" aria-label={t('title')}>
           {exercises.map((e, i) => (
             <button
               key={e.key}
@@ -150,6 +154,8 @@ export default function CalmPage() {
           {active === 'breathing' && <BreathingCircle onDone={(s, c) => recordSession('breathing', s, c)} />}
           {active === 'grounding' && <GroundingStepper onDone={(s, c) => recordSession('grounding', s, c)} />}
           {active === 'memory' && <MemoryMatch onDone={(s, c) => recordSession('memory', s, c)} />}
+          {active === 'bubbles' && <BubbleCalm onDone={(s, c) => recordSession('bubbles', s, c)} />}
+          {active === 'echo' && <PatternEcho onDone={(s, c) => recordSession('echo', s, c)} />}
         </motion.div>
       </section>
 

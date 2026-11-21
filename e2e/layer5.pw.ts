@@ -127,13 +127,11 @@ test('Layer 5 golden path: reminders, ladder, trusted contact, calm, companion c
   await expect(jokesSwitch).toHaveAttribute('aria-checked', 'true');
   await expect(page.locator('p.bg-surface-2').first()).toBeVisible();
 
-  // Companion: a crisis keyword in free text opens the emergency flow.
+  // Companion: a crisis keyword in chat is caught locally and opens the emergency flow.
   await page.goto('/resident/companion');
   await expect(page.getByText("I'm not a replacement for a professional", { exact: false })).toBeVisible();
-  await page.getByRole('button', { name: 'Today feels heavy' }).click();
-  await page.getByRole('button', { name: 'Put it into words' }).click();
   await page.locator('#companion-free-text').fill('I want to kill myself');
-  await page.getByRole('button', { name: 'Go to the Calm Corner' }).click();
+  await page.getByRole('button', { name: 'Send', exact: true }).click();
   await page.waitForURL(/\/emergency/);
   await expect(page.getByText(/You are not alone/).first()).toBeVisible();
 
