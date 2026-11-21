@@ -51,7 +51,8 @@ export function inQuietHours(prefs: ReminderPrefs, at: Date): boolean {
   const start = minutesOfDay(prefs.quietStart);
   const end = minutesOfDay(prefs.quietEnd);
   if (start === end) return false;
-  const now = at.getHours() * 60 + at.getMinutes();
+  // Quiet hours are UTC-based so behavior never depends on the server's TZ.
+  const now = at.getUTCHours() * 60 + at.getUTCMinutes();
   return start < end ? now >= start && now < end : now >= start || now < end;
 }
 

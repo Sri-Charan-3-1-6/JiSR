@@ -10,7 +10,7 @@ import {
 } from '@/lib/reminders';
 
 const prefs: ReminderPrefs = { ...DEFAULT_PREFS };
-const at = (h: number, m = 0) => new Date(2026, 0, 5, h, m, 0);
+const at = (h: number, m = 0) => new Date(Date.UTC(2026, 0, 5, h, m, 0));
 const due = at(9);
 const base = { state: 'pending', dueAt: due, remindersSent: 0, consecutiveMisses: 0 };
 

@@ -51,10 +51,13 @@ export async function POST(
       }
     : DEFAULT_PREFS;
 
+  // Both sides are pinned to UTC: a bare $2::date would parse the client-local
+  // calendar date out of node-pg's serialized timestamp, while created_at::date
+  // uses the session timezone — they disagree whenever local date != UTC date.
   const cap = await one<{ n: number }>(
     `select count(*)::int as n from reminder_events
      where resident_id = $1 and kind in ('reminder','soft_reminder')
-       and created_at::date = $2::date`,
+       and (created_at at time zone 'UTC')::date = (($2::timestamptz) at time zone 'UTC')::date`,
     [id, now],
   );
   let sentToday = cap?.n ?? 0;
