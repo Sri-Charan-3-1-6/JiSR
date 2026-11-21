@@ -1,0 +1,77 @@
+{
+  "home": {
+    "perfRuns": [
+      95,
+      93,
+      94
+    ],
+    "a11yRuns": [
+      100,
+      100,
+      100
+    ],
+    "perfMedian": 94,
+    "a11yMedian": 100,
+    "pass": true
+  },
+  "resident": {
+    "perfRuns": [
+      90,
+      92,
+      90
+    ],
+    "a11yRuns": [
+      100,
+      100,
+      100
+    ],
+    "perfMedian": 90,
+    "a11yMedian": 100,
+    "pass": true
+  },
+  "navigator": {
+    "perfRuns": [
+      92,
+      89,
+      89
+    ],
+    "a11yRuns": [
+      100,
+      100,
+      100
+    ],
+    "perfMedian": 89,
+    "a11yMedian": 100,
+    "pass": true
+  },
+  "health-system": {
+    "perfRuns": [
+      92,
+      92,
+      94
+    ],
+    "a11yRuns": [
+      100,
+      100,
+      100
+    ],
+    "perfMedian": 92,
+    "a11yMedian": 100,
+    "pass": true
+  },
+  "employer": {
+    "perfRuns": [
+      94,
+      94,
+      91
+    ],
+    "a11yRuns": [
+      100,
+      100,
+      100
+    ],
+    "perfMedian": 94,
+    "a11yMedian": 100,
+    "pass": true
+  }
+}
