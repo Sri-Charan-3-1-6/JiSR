@@ -8,9 +8,13 @@ test('Bubble Calm: pop to the goal, done state, play again', async ({ page }) =>
   await page.goto('/resident/calm');
   await page.getByRole('tab', { name: 'Bubble calm' }).click();
   await expect(page.getByText('Popped: 0 of 12')).toBeVisible();
+  const bubbles = page.getByRole('button', { name: /Bubble \d/ });
+  await expect(bubbles.first()).toBeVisible();
   for (let i = 0; i < 12; i++) {
-    // Bubbles drift continuously, so skip the stability wait and click as-is.
-    await page.getByRole('button', { name: /Bubble \d/ }).first().click({ force: true });
+    // Rotate across the six bubbles so a just-respawned one finishes its
+    // scale-in before being clicked again; drift means no stability wait.
+    await bubbles.nth(i % 6).click({ force: true });
+    await expect(page.getByText(`Popped: ${i + 1} of 12`)).toBeVisible();
   }
   await expect(page.getByText('Popped: 12 of 12')).toBeVisible();
   await expect(page.getByText('Done', { exact: true })).toBeVisible();

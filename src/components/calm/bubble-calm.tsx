@@ -27,8 +27,8 @@ function makeBubble(id: number, gen: number): Bubble {
   return {
     id,
     gen,
-    x: 8 + Math.random() * 74,
-    y: 8 + Math.random() * 66,
+    x: 4 + Math.random() * 66,
+    y: 4 + Math.random() * 56,
     size: 44 + Math.round(Math.random() * 30),
     tone: Math.floor(Math.random() * TONES.length),
     drift: 3 + Math.random() * 3,
